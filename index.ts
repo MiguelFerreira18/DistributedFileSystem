@@ -3,6 +3,8 @@ import fs from "fs";
 import { promisify } from "util";
 import { join } from "path";
 import dotenv from 'dotenv';
+import module from './module'
+console.log(module)
 
 dotenv.config();
 
