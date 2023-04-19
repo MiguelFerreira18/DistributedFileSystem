@@ -15,6 +15,6 @@ dbKernel = {
     },
     create: function (params) {
         // implementation for create method
-    }
+    },
 };
 exports.default = dbKernel;

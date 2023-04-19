@@ -4,6 +4,11 @@ import { promisify } from "util";
 import { join } from "path";
 import dotenv from 'dotenv';
 import module from './module'
+import m0, { init, add, multiply } from "./reusable";
+
+console.log(add(1,2))
+init({"home":"./"})
+
 console.log(module)
 
 dotenv.config();
