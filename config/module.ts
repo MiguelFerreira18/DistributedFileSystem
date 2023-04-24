@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { inherits } from "util";
-import conf from "./dbPardal.json";
+import conf from "../config/dbPardal.json";
 let dbKernel: DbKernel;
 
 let home;

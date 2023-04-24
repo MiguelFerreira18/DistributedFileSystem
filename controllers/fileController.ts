@@ -1,8 +1,8 @@
-import {logger} from '../logger'
+import {logger} from '../config/logger'
 import {join} from 'path'
 import fs from 'fs'
 import {promisify} from 'util'
-import conf from '../dbPardal.json'
+import conf from '../config/dbPardal.json'
 
 
 

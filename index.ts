@@ -1,8 +1,8 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express } from 'express';
 import dotenv from 'dotenv';
-import module from './module'
+import module from './config/module'
 import bodyParser from "body-parser";
-import {logger} from './logger';
+import {logger} from './config/logger';
 import fileRoutes from './routes/fileRoutes'
 
 
