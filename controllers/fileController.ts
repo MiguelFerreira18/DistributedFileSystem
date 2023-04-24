@@ -4,6 +4,8 @@ import fs from 'fs'
 import {promisify} from 'util'
 import conf from '../dbPardal.json'
 
+
+
 const folderPath = join(conf.home,conf.dbDir);
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
@@ -32,7 +34,7 @@ const writeFile = async (req:any,res:any) => {
     const filePath = join(folderPath, fileName);
     const data: string = JSON.stringify(req.body);
     try {
-      await appendFileAsync(filePath, JSON.stringify(data), "utf-8");
+      await appendFileAsync(filePath, data, "utf-8");
       handleSuccess(2,filePath,data)
       res.send("File saved successfully");
     } catch (err) {
@@ -107,3 +109,5 @@ const handleSuccess = async (successLevel:number,filePath:string,data?:string) =
             break;
     }
 }
+
+export default {getPage,readFile,writeFile,updateFile,deleteFile}

@@ -49,8 +49,6 @@ dbKernel = {
       console.log(`Directory ${viewsDir} created successfully.`);
     }
 
-
-
   },
   create: function (params: any) {
     
