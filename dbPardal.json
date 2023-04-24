@@ -1,5 +1,6 @@
 {
     "home":"./",
-    "dbDir":"db",
+    "dbDir":"files",
+    "routesDir":"routes",
     "dbgLevel":"error"
 }
