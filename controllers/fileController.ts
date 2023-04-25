@@ -15,6 +15,7 @@ const deleteFileAsync = promisify(fs.unlink);
 const getPage = (req:any,res:any) => {
     res.send('GET request to the homepage')
 }
+
 const readFile = async (req:any,res:any)  => {
     const fileName = req.params.fileKey;
     const filePath = join(folderPath, fileName);
@@ -29,6 +30,7 @@ const readFile = async (req:any,res:any)  => {
       res.status(500).send("Error reading file");
     }
 }
+
 const writeFile = async (req:any,res:any) => {
     const fileName = req.params.fileKey;
     const filePath = join(folderPath, fileName);
@@ -43,6 +45,7 @@ const writeFile = async (req:any,res:any) => {
       res.status(500).send("Error writing file");
     }
 }
+
 const updateFile = async (req:any,res:any) => {
     const fileName = req.params.fileKey;
     const filePath = join(folderPath, fileName);
@@ -57,6 +60,7 @@ const updateFile = async (req:any,res:any) => {
       res.status(500).send("Error updating file");
     }
 }
+
 const deleteFile = async (req:any,res:any) => {
     const fileName = req.params.fileKey;
     const filePath = join(folderPath, fileName);
