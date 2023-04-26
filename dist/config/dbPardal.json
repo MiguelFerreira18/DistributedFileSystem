@@ -1,0 +1,9 @@
+{
+    "home": "./",
+    "dbDir": "files",
+    "routesDir": "routes",
+    "modelsDir": "models",
+    "viewsDir": "views",
+    "controllersDir": "controllers",
+    "dbgLevel": "error"
+}
