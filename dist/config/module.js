@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -57,32 +48,23 @@ dbKernel = {
             console.log(`Directory ${viewsDir} created successfully.`);
         }
     },
-    create: function (fileName, data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new Error("Method not implemented.");
-            const filePath = (0, path_2.join)(folderPath, fileName);
-            yield appendFileAsync(filePath, data, "utf-8");
-        });
+    create: async function (fileName, data) {
+        const filePath = (0, path_2.join)(folderPath, fileName);
+        await appendFileAsync(filePath, data, "utf-8");
     },
-    update: function (fileName, data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const filePath = (0, path_2.join)(folderPath, fileName);
-            yield writeFileAsync(filePath, JSON.stringify(data), "utf-8");
-        });
+    update: async function (fileName, data) {
+        const filePath = (0, path_2.join)(folderPath, fileName);
+        await writeFileAsync(filePath, JSON.stringify(data), "utf-8");
     },
-    read: function (fileName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const filePath = (0, path_2.join)(folderPath, fileName);
-            const data = yield readFileAsync(filePath, "utf-8");
-            const jsonData = JSON.parse(data);
-            return jsonData;
-        });
+    read: async function (fileName) {
+        const filePath = (0, path_2.join)(folderPath, fileName);
+        const data = await readFileAsync(filePath, "utf-8");
+        const jsonData = JSON.parse(data);
+        return jsonData;
     },
-    delete: function (fileName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const filePath = (0, path_2.join)(folderPath, fileName);
-            yield deleteFileAsync(filePath);
-        });
+    delete: async function (fileName) {
+        const filePath = (0, path_2.join)(folderPath, fileName);
+        await deleteFileAsync(filePath);
     },
 };
 exports.default = dbKernel;
