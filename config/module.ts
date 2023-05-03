@@ -3,6 +3,8 @@ import path from "path";
 import {join} from 'path'
 import {promisify} from 'util'
 import conf from "../config/dbPardal.json";
+import {groupMap,Group} from '../src/groups'
+
 let dbKernel: DbKernel;
 
 let home;
@@ -15,7 +17,7 @@ const appendFileAsync = promisify(fs.appendFile);
 const deleteFileAsync = promisify(fs.unlink);
 
 interface DbKernel {
-  init:() => void;
+  init:(groupHash:string) => Promise<void>;
   create:(fileName: any, data: any) => Promise<void>;
   update: (fileName: any, data: any) => Promise<void>;
   read: (fileName: any) => Promise<string>;
@@ -23,7 +25,7 @@ interface DbKernel {
 }
 
 dbKernel = {
-  init: function () {
+  init: async function (groupHash:string) {
     home = conf.home;
 
     //File DB Dir
@@ -32,30 +34,13 @@ dbKernel = {
       fs.mkdirSync(dbDir);
       console.log(`Directory ${dbDir} created successfully.`);
     }
-
-    //Routes Dir
-    let routesDir = path.join(home, conf.routesDir);
-    if (!fs.existsSync(routesDir)) {
-      fs.mkdirSync(routesDir);
-      console.log(`Directory ${routesDir} created successfully.`);
-    }
-
-    //MVC Dir
-    let modelsDir = path.join(home, conf.modelsDir);
-    if (!fs.existsSync(modelsDir)) {
-      fs.mkdirSync(modelsDir);
-      console.log(`Directory ${modelsDir} created successfully.`);
-    }
-    let controllersDir = path.join(home, conf.controllersDir);
-    if (!fs.existsSync(controllersDir)) {
-      fs.mkdirSync(controllersDir);
-      console.log(`Directory ${controllersDir} created successfully.`);
-    }
-    let viewsDir = path.join(home, conf.viewsDir);
-    if (!fs.existsSync(viewsDir)) {
-      fs.mkdirSync(viewsDir);
-      console.log(`Directory ${viewsDir} created successfully.`);
-    }
+    //check if the groupHash is in the groupMap and if it is check it to is active true
+    if(groupMap.has(groupHash)){
+      const group:any = groupMap.get(groupHash);
+       group.isActive = true;
+       console.log("was group")
+      }
+      console.log(groupMap);
   },
   create: async function (fileName: any, data: any) {
     const filePath = join(folderPath, fileName);

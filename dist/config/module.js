@@ -8,6 +8,7 @@ const path_1 = __importDefault(require("path"));
 const path_2 = require("path");
 const util_1 = require("util");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
+const groups_1 = require("../src/groups");
 let dbKernel;
 let home;
 let dbDir;
@@ -17,7 +18,7 @@ const writeFileAsync = (0, util_1.promisify)(fs_1.default.writeFile);
 const appendFileAsync = (0, util_1.promisify)(fs_1.default.appendFile);
 const deleteFileAsync = (0, util_1.promisify)(fs_1.default.unlink);
 dbKernel = {
-    init: function () {
+    init: async function (groupHash) {
         home = dbPardal_json_1.default.home;
         //File DB Dir
         dbDir = path_1.default.join(home, dbPardal_json_1.default.dbDir);
@@ -25,28 +26,12 @@ dbKernel = {
             fs_1.default.mkdirSync(dbDir);
             console.log(`Directory ${dbDir} created successfully.`);
         }
-        //Routes Dir
-        let routesDir = path_1.default.join(home, dbPardal_json_1.default.routesDir);
-        if (!fs_1.default.existsSync(routesDir)) {
-            fs_1.default.mkdirSync(routesDir);
-            console.log(`Directory ${routesDir} created successfully.`);
+        //check if the groupHash is in the groupMap and if it is check it to is active true
+        if (groups_1.groupMap.has(groupHash)) {
+            const group = groups_1.groupMap.get(groupHash);
+            group.isActive = true;
         }
-        //MVC Dir
-        let modelsDir = path_1.default.join(home, dbPardal_json_1.default.modelsDir);
-        if (!fs_1.default.existsSync(modelsDir)) {
-            fs_1.default.mkdirSync(modelsDir);
-            console.log(`Directory ${modelsDir} created successfully.`);
-        }
-        let controllersDir = path_1.default.join(home, dbPardal_json_1.default.controllersDir);
-        if (!fs_1.default.existsSync(controllersDir)) {
-            fs_1.default.mkdirSync(controllersDir);
-            console.log(`Directory ${controllersDir} created successfully.`);
-        }
-        let viewsDir = path_1.default.join(home, dbPardal_json_1.default.viewsDir);
-        if (!fs_1.default.existsSync(viewsDir)) {
-            fs_1.default.mkdirSync(viewsDir);
-            console.log(`Directory ${viewsDir} created successfully.`);
-        }
+        console.log(groups_1.groupMap);
     },
     create: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName);

@@ -6,7 +6,7 @@ import {logger} from '../config/logger';
 import fileRoutes from '../routes/fileRoutes'
 
 
-module.init()
+
 dotenv.config();
 
 const app: Express = express();

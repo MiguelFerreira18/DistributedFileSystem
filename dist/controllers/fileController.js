@@ -11,6 +11,17 @@ const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_
 const getPage = (req, res) => {
     res.send("GET request to the homepage");
 };
+const init = (groupHash, res) => {
+    try {
+        console.log("Initializing file system");
+        module_1.default.init(groupHash);
+        res.send("File System initialized successfully");
+    }
+    catch (err) {
+        console.log(err);
+        res.status(500).send("Error initializing file system");
+    }
+};
 const readFile = async (req, res) => {
     const fileName = req.params.fileKey;
     const filePath = (0, path_1.join)(folderPath, fileName);
@@ -109,4 +120,4 @@ const handleSuccess = async (successLevel, filePath, data) => {
             break;
     }
 };
-exports.default = { getPage, readFile, writeFile, updateFile, deleteFile };
+exports.default = { init, getPage, readFile, writeFile, updateFile, deleteFile };

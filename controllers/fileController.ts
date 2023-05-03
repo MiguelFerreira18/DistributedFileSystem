@@ -9,6 +9,23 @@ const getPage = (req: any, res: any) => {
   res.send("GET request to the homepage");
 };
 
+
+
+
+const init = (groupHash:string, res: any) => {
+  try {
+    console.log("Initializing file system");
+    console.log("Group hash: " + groupHash);
+    dbKernel.init(groupHash);
+    res.send("File System initialized successfully");
+  
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error initializing file system");
+  }
+};
+
+
 const readFile = async (req: any, res: any) => {
   const fileName = req.params.fileKey;
   const filePath = join(folderPath, fileName);
@@ -121,4 +138,4 @@ const handleSuccess = async (
   }
 };
 
-export default { getPage, readFile, writeFile, updateFile, deleteFile };
+export default {init,getPage, readFile, writeFile, updateFile, deleteFile };

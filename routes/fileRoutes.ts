@@ -5,6 +5,7 @@ const router = express.Router();
 
 
 router.get('/',fileController.getPage)
+router.post('/init/:groupHash',fileController.init)
 router.get("/read/:fileKey",fileController.readFile)
 router.post("/write/:fileKey",fileController.writeFile);
 router.post('/update/:fileKey',fileController.updateFile);
