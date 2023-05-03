@@ -1,6 +1,0 @@
-{
-    "home": "./",
-    "dbDir": "files",
-    "routesDir": "routes",
-    "dbgLevel": "error"
-}

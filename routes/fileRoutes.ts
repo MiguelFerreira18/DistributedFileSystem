@@ -10,6 +10,7 @@ router.get("/read/:fileKey",fileController.readFile)
 router.post("/write/:fileKey",fileController.writeFile);
 router.post('/update/:fileKey',fileController.updateFile);
 router.post('/delete/:fileKey',fileController.deleteFile);
+router.get('/status',fileController.groupServerStatus);
 
 export default router;
 

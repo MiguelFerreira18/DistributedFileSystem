@@ -12,4 +12,5 @@ router.get("/read/:fileKey", fileController_1.default.readFile);
 router.post("/write/:fileKey", fileController_1.default.writeFile);
 router.post('/update/:fileKey', fileController_1.default.updateFile);
 router.post('/delete/:fileKey', fileController_1.default.deleteFile);
+router.get('/status', fileController_1.default.groupServerStatus);
 exports.default = router;

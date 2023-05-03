@@ -12,11 +12,11 @@ const getPage = (req: any, res: any) => {
 
 
 
-const init = (groupHash:string, res: any) => {
+const init = (groupHash:any, res: any) => {
   try {
     console.log("Initializing file system");
-    console.log("Group hash: " + groupHash);
-    dbKernel.init(groupHash);
+    console.log("Group hash: " + groupHash.params.groupHash);
+    dbKernel.init(groupHash.params.groupHash);
     res.send("File System initialized successfully");
   
   } catch (err) {
@@ -84,7 +84,15 @@ const deleteFile = async (req: any, res: any) => {
     res.status(500).send("Error deleting file");
   }
 };
-
+const groupServerStatus = async (req:any,res:any)=>{
+  try{
+    await dbKernel.groupServerStatus();
+    res.send("have a good one");
+  }catch(err){
+    console.log(err);
+    res.status(500).send("Error getting group server status");
+  }
+}
 const handleErrors = async (
   errorLevel: number,
   err: unknown,
@@ -108,6 +116,7 @@ const handleErrors = async (
       break;
   }
 };
+
 const handleSuccess = async (
   successLevel: number,
   filePath: string,
@@ -138,4 +147,6 @@ const handleSuccess = async (
   }
 };
 
-export default {init,getPage, readFile, writeFile, updateFile, deleteFile };
+
+
+export default {init,getPage, readFile, writeFile, updateFile, deleteFile,groupServerStatus };

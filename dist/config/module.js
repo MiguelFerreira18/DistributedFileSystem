@@ -30,8 +30,9 @@ dbKernel = {
         if (groups_1.groupMap.has(groupHash)) {
             const group = groups_1.groupMap.get(groupHash);
             group.isActive = true;
+            console.log("was group");
+            console.log(group);
         }
-        console.log(groups_1.groupMap);
     },
     create: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName);
@@ -51,5 +52,9 @@ dbKernel = {
         const filePath = (0, path_2.join)(folderPath, fileName);
         await deleteFileAsync(filePath);
     },
+    groupServerStatus: async function () {
+        //use console.table to make a good table with the groupMap hashTable
+        await console.log(groups_1.groupMap);
+    }
 };
 exports.default = dbKernel;

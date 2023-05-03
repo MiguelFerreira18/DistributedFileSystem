@@ -22,6 +22,7 @@ interface DbKernel {
   update: (fileName: any, data: any) => Promise<void>;
   read: (fileName: any) => Promise<string>;
   delete: (params: any) => Promise<void>;
+  groupServerStatus: () => Promise<void>
 }
 
 dbKernel = {
@@ -39,8 +40,8 @@ dbKernel = {
       const group:any = groupMap.get(groupHash);
        group.isActive = true;
        console.log("was group")
+        console.log(group)
       }
-      console.log(groupMap);
   },
   create: async function (fileName: any, data: any) {
     const filePath = join(folderPath, fileName);
@@ -64,6 +65,11 @@ dbKernel = {
       const filePath = join(folderPath, fileName);
       await deleteFileAsync(filePath);
   },
+  groupServerStatus: async function () {
+    //use console.table to make a good table with the groupMap hashTable
+    await console.log(groupMap)
+    
+  }
 };
 
 export default dbKernel;
