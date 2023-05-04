@@ -32,7 +32,9 @@ dbKernel = {
             group.isActive = true;
             console.log("was group");
             console.log(group);
+            return true;
         }
+        return false;
     },
     create: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName);

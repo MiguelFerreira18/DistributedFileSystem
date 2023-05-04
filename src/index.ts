@@ -19,6 +19,7 @@ app.get('/projName', (req, res) => {
 })
 
 
+
 //Routes for files manipulation
 app.use('/file',fileRoutes)
 
@@ -26,3 +27,5 @@ app.listen(port, () => {
   logger.info("-------------------------------------------Server started---------------------------------------------");
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
+
+export default app;

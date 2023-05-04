@@ -2,6 +2,8 @@ import { logger } from "../config/logger";
 import { join } from "path";
 import conf from "../config/dbPardal.json";
 import dbKernel from "../config/module";
+import proxy from 'express-http-proxy';
+import app from '../src/index';
 
 const folderPath = join(conf.home, conf.dbDir);
 
@@ -9,16 +11,21 @@ const getPage = (req: any, res: any) => {
   res.send("GET request to the homepage");
 };
 
-
-
-
-const init = (groupHash:any, res: any) => {
+const init = (req:any, res: any) => {
   try {
     console.log("Initializing file system");
-    console.log("Group hash: " + groupHash.params.groupHash);
-    dbKernel.init(groupHash.params.groupHash);
-    res.send("File System initialized successfully");
-  
+    console.log("Group hash: " + req.params.groupHash);
+    dbKernel.init(req.params.groupHash).then((isGroup) =>{
+      if (isGroup) {
+        console.log("Group is initialized");
+        //dynamic proxy servers
+        app.use(`/api/${req.params.groupHash}`, proxy(`http://localhost:${req.body.serverPort}`))
+        res.send("Group req.params.groupHash is initialized at http://localhost:${req.body.serverPort}");
+      } else {
+        console.log("Group is not initialized");
+        res.send("Group is not initialized");
+      }
+    })
   } catch (err) {
     console.log(err);
     res.status(500).send("Error initializing file system");

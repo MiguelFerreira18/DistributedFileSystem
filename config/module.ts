@@ -17,7 +17,7 @@ const appendFileAsync = promisify(fs.appendFile);
 const deleteFileAsync = promisify(fs.unlink);
 
 interface DbKernel {
-  init:(groupHash:string) => Promise<void>;
+  init:(groupHash:string) => Promise<boolean>;
   create:(fileName: any, data: any) => Promise<void>;
   update: (fileName: any, data: any) => Promise<void>;
   read: (fileName: any) => Promise<string>;
@@ -41,7 +41,9 @@ dbKernel = {
        group.isActive = true;
        console.log("was group")
         console.log(group)
+        return true;
       }
+      return false;
   },
   create: async function (fileName: any, data: any) {
     const filePath = join(folderPath, fileName);

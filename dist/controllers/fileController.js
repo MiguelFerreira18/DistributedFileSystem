@@ -15,8 +15,16 @@ const init = (groupHash, res) => {
     try {
         console.log("Initializing file system");
         console.log("Group hash: " + groupHash.params.groupHash);
-        module_1.default.init(groupHash.params.groupHash);
-        res.send("File System initialized successfully");
+        module_1.default.init(groupHash.params.groupHash).then((isGroup) => {
+            if (isGroup) {
+                console.log("Group is initialized");
+                res.send("Group is initialized");
+            }
+            else {
+                console.log("Group is not initialized");
+                res.send("Group is not initialized");
+            }
+        });
     }
     catch (err) {
         console.log(err);
