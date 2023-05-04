@@ -4,17 +4,21 @@ import module from '../config/module'
 import bodyParser from "body-parser";
 import {logger} from '../config/logger';
 import fileRoutes from '../routes/fileRoutes'
+import proxy from 'express-http-proxy';
 
 
 
 dotenv.config();
 
 const app: Express = express();
+
+app.use('/newApi/*',proxy("http://localhost:3001/"))
+
 app.use(bodyParser.json())
 const port = process.env.PORT || 8080;
 
 
-app.get('/projName', (req, res) => {
+app.get('/', (req, res) => {
   res.send("FileSystem");
 })
 
