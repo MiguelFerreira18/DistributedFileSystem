@@ -18,9 +18,11 @@ const init = (req:any, res: any) => {
     dbKernel.init(req.params.groupHash).then((isGroup) =>{
       if (isGroup) {
         console.log("Group is initialized");
+
+        //!VERIFICAR ESTA PARTE DO CODIGO
         //dynamic proxy servers
-        app.use(`/api/${req.params.groupHash}`, proxy(`http://localhost:${req.body.serverPort}`))
-        res.send("Group req.params.groupHash is initialized at http://localhost:${req.body.serverPort}");
+        app.use(`/api/${req.params.groupHash}`, proxy(`http://localhost:${req.body.serverPort}/projName`))
+        res.send(`Group ${req.params.groupHash} is initialized at http://localhost:${req.body.serverPort} \n\n\n Distributer server route: http://localhost:3002/api/${req.params.groupHash}`);
       } else {
         console.log("Group is not initialized");
         res.send("Group is not initialized");

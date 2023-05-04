@@ -7,18 +7,22 @@ const logger_1 = require("../config/logger");
 const path_1 = require("path");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const module_1 = __importDefault(require("../config/module"));
+const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
+const index_1 = __importDefault(require("../src/index"));
 const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
 const getPage = (req, res) => {
     res.send("GET request to the homepage");
 };
-const init = (groupHash, res) => {
+const init = (req, res) => {
     try {
         console.log("Initializing file system");
-        console.log("Group hash: " + groupHash.params.groupHash);
-        module_1.default.init(groupHash.params.groupHash).then((isGroup) => {
+        console.log("Group hash: " + req.params.groupHash);
+        module_1.default.init(req.params.groupHash).then((isGroup) => {
             if (isGroup) {
                 console.log("Group is initialized");
-                res.send("Group is initialized");
+                //dynamic proxy servers
+                index_1.default.use(`/api/${req.params.groupHash}`, (0, express_http_proxy_1.default)(`http://localhost:${req.body.serverPort}/projName`));
+                res.send(`Group ${req.params.groupHash} is initialized at http://localhost:${req.body.serverPort} \n\n\n Distributer server route: http://localhost:3002/api/${req.params.groupHash}`);
             }
             else {
                 console.log("Group is not initialized");

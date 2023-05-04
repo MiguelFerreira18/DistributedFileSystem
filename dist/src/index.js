@@ -21,3 +21,4 @@ app.listen(port, () => {
     logger_1.logger.info("-------------------------------------------Server started---------------------------------------------");
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
+exports.default = app;

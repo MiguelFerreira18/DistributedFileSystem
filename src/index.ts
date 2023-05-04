@@ -18,8 +18,6 @@ app.get('/projName', (req, res) => {
   res.send("FileSystem");
 })
 
-
-
 //Routes for files manipulation
 app.use('/file',fileRoutes)
 
