@@ -20,6 +20,7 @@ const init = (req, res) => {
         module_1.default.init(req.params.groupHash).then((isGroup) => {
             if (isGroup) {
                 console.log("Group is initialized");
+                //!VERIFICAR ESTA PARTE DO CODIGO
                 //dynamic proxy servers
                 index_1.default.use(`/api/${req.params.groupHash}`, (0, express_http_proxy_1.default)(`http://localhost:${req.body.serverPort}/projName`));
                 res.send(`Group ${req.params.groupHash} is initialized at http://localhost:${req.body.serverPort} \n\n\n Distributer server route: http://localhost:3002/api/${req.params.groupHash}`);
