@@ -5,6 +5,7 @@ export class Group {
     members: string[];
     ngId: string;
     isActive: boolean = false;
+    server: string = '';
     constructor(members: string[], ngId: string) {
         this.members = members;
         this.ngId = ngId;

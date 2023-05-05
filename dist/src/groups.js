@@ -5,6 +5,7 @@ exports.groupMap = exports.Group = void 0;
 class Group {
     constructor(members, ngId) {
         this.isActive = false;
+        this.server = '';
         this.members = members;
         this.ngId = ngId;
     }

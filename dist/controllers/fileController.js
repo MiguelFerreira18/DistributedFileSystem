@@ -9,6 +9,9 @@ const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const module_1 = __importDefault(require("../config/module"));
 const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
 const index_1 = __importDefault(require("../src/index"));
+const crypto_1 = __importDefault(require("crypto"));
+const groups_1 = __importDefault(require("../src/groups"));
+const console_1 = require("console");
 const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
 const getPage = (req, res) => {
     res.send("GET request to the homepage");
@@ -36,12 +39,30 @@ const init = (req, res) => {
         res.status(500).send("Error initializing file system");
     }
 };
+const sendFile = async (req, res) => {
+    const fileName = req.params.fileKey;
+    const filePath = (0, path_1.join)(folderPath, fileName);
+    try {
+        const data = JSON.stringify(req.body);
+        const getServer = await activeServers(fileName);
+        if (getServer === null)
+            throw console_1.error;
+        await module_1.default.sendFile(fileName, data, getServer);
+        handleSuccess(1, filePath, data);
+        const jsonData = JSON.parse(data);
+        res.send(jsonData);
+    }
+    catch (err) {
+        console.log(err);
+        handleErrors(1, err, filePath);
+        res.status(500).send("Error reading file");
+    }
+};
 const readFile = async (req, res) => {
     const fileName = req.params.fileKey;
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
         const data = await module_1.default.read(fileName);
-        ;
         handleSuccess(1, filePath, data);
         const jsonData = JSON.parse(data);
         res.send(jsonData);
@@ -56,8 +77,10 @@ const writeFile = async (req, res) => {
     const fileName = req.params.fileKey;
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
+    const md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
+    const _8_first_bytes_as_hex = "0x" + md5.substr(0, 16);
     try {
-        await module_1.default.create(fileName, data);
+        await module_1.default.create(_8_first_bytes_as_hex, data);
         handleSuccess(2, filePath, data);
         res.send("File saved successfully");
     }
@@ -144,4 +167,42 @@ const handleSuccess = async (successLevel, filePath, data) => {
             break;
     }
 };
-exports.default = { init, getPage, readFile, writeFile, updateFile, deleteFile, groupServerStatus };
+const chooseNode = async (fileName) => {
+    let count = 0;
+    for (const [key, value] of groups_1.default.groupMap) {
+        if (value.isActive) {
+            count++;
+        }
+    }
+    const Nodes_N = BigInt(count);
+    let md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
+    let _8_first_bytes_as_hex = "0x" + md5.substr(0, 16);
+    const hugeHex = BigInt(_8_first_bytes_as_hex);
+    const destNode = hugeHex % Nodes_N;
+    return { destNode, _8_first_bytes_as_hex };
+};
+const activeServers = async (fileName) => {
+    const destNode = (await chooseNode(fileName)).destNode;
+    let group;
+    let count = 0;
+    for (const [key, value] of groups_1.default.groupMap) {
+        if (BigInt(count) === destNode) {
+            group = value;
+            return group;
+        }
+        else if (value.isActive) {
+            count++;
+        }
+    }
+    return null;
+};
+exports.default = {
+    init,
+    sendFile,
+    getPage,
+    readFile,
+    writeFile,
+    updateFile,
+    deleteFile,
+    groupServerStatus,
+};

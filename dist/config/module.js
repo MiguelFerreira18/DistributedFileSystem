@@ -9,6 +9,7 @@ const path_2 = require("path");
 const util_1 = require("util");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const groups_1 = require("../src/groups");
+const axios_1 = __importDefault(require("axios"));
 let dbKernel;
 let home;
 let dbDir;
@@ -36,6 +37,18 @@ dbKernel = {
         }
         return false;
     },
+    sendFile: async function (fileName, data, destNode) {
+        //Mudar quando se conseguir fazer a reverse proxy
+        //const url = `${destNode.server}/file/write/${fileName}`;
+        const url = `http://localhost:3001/write/${fileName}`;
+        axios_1.default.post(url, data)
+            .then(res => {
+            console.log(res);
+        })
+            .catch(err => {
+            console.error(err);
+        });
+    },
     create: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName);
         await appendFileAsync(filePath, data, "utf-8");
@@ -55,7 +68,6 @@ dbKernel = {
         await deleteFileAsync(filePath);
     },
     groupServerStatus: async function () {
-        //use console.table to make a good table with the groupMap hashTable
         await console.log(groups_1.groupMap);
     }
 };

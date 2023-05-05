@@ -4,6 +4,7 @@ import {join} from 'path'
 import {promisify} from 'util'
 import conf from "../config/dbPardal.json";
 import {groupMap,Group} from '../src/groups'
+import axios from 'axios';
 
 let dbKernel: DbKernel;
 
@@ -18,11 +19,12 @@ const deleteFileAsync = promisify(fs.unlink);
 
 interface DbKernel {
   init:(groupHash:string) => Promise<boolean>;
+  sendFile:(fileName:string,data:string,destNode:any) => Promise<void>;
   create:(fileName: any, data: any) => Promise<void>;
   update: (fileName: any, data: any) => Promise<void>;
   read: (fileName: any) => Promise<string>;
   delete: (params: any) => Promise<void>;
-  groupServerStatus: () => Promise<void>
+  groupServerStatus: () => Promise<void>;
 }
 
 dbKernel = {
@@ -44,6 +46,19 @@ dbKernel = {
         return true;
       }
       return false;
+  },
+  sendFile: async function (fileName:string,data:string,destNode:Group) {
+    //Mudar quando se conseguir fazer a reverse proxy
+    //const url = `${destNode.server}/file/write/${fileName}`;
+    const url = `http://localhost:3001/write/${fileName}`;
+    
+    axios.post(url,data)
+    .then(res => {
+      console.log(res)
+    })
+    .catch(err => {
+      console.error(err); 
+    })
   },
   create: async function (fileName: any, data: any) {
     const filePath = join(folderPath, fileName);
@@ -68,7 +83,6 @@ dbKernel = {
       await deleteFileAsync(filePath);
   },
   groupServerStatus: async function () {
-    //use console.table to make a good table with the groupMap hashTable
     await console.log(groupMap)
     
   }
