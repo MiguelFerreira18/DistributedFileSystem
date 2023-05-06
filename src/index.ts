@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import {logger} from '../config/logger';
 import fileRoutes from '../routes/fileRoutes'
 import proxy from 'express-http-proxy';
+import axios from 'axios';
 
 
 
@@ -20,6 +21,26 @@ const port = process.env.PORT || 8080;
 
 app.get('/', (req, res) => {
   res.send("FileSystem");
+})
+
+app.post('/initConn', function (req, res) {
+  axios({
+    method: 'post',
+    url: 'http://localhost:3001/file/init/1b02d8d2476',
+    data: {
+      serverPort: 3002,
+    }
+  }).then(
+    (response) => {
+      console.log(response.data);
+      res.send(response.data);
+    }
+  ).catch(
+    (error) => {
+      console.log(error);
+    }
+  );
+
 })
 
 //Routes for files manipulation

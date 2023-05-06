@@ -52,7 +52,8 @@ const sendFile = async (req: any, res: any) => {
     if(getServer===null) throw error;
 
     await dbKernel.sendFile(fileName, data,getServer);
-    handleSuccess(1, filePath, data);
+    //Mudar estes Handlers
+    handleSuccess(2, filePath, data);
     const jsonData = JSON.parse(data);
     res.send(jsonData);
   } catch (err) {

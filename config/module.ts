@@ -47,21 +47,20 @@ dbKernel = {
       }
       return false;
   },
-  sendFile: async function (fileName:string,data:string,destNode:Group) {
+  sendFile: async function (fileName:string,body:string,destNode:Group) {
     //Mudar quando se conseguir fazer a reverse proxy
     //const url = `${destNode.server}/file/write/${fileName}`;
     const url = `http://localhost:3001/write/${fileName}`;
     
-    axios.post(url,data)
-    .then(res => {
-      console.log(res)
-    })
-    .catch(err => {
-      console.error(err); 
+    axios({
+      method:'post',
+      url: url,
+      data:{body}
     })
   },
   create: async function (fileName: any, data: any) {
-    const filePath = join(folderPath, fileName);
+    
+    const filePath = join(folderPath, fileName+".json");
     await appendFileAsync(filePath, data, "utf-8");
 
   },
