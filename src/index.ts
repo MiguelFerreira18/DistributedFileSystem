@@ -7,6 +7,9 @@ import fileRoutes from '../routes/fileRoutes'
 import proxy from 'express-http-proxy';
 import axios from 'axios';
 import { map } from 'lodash';
+import {groupMap,Group}from "../src/groups";
+import proxyRoutes from '../routes/proxyRoutes'
+import db from '../config/dbPardal.json'
 
 
 
@@ -18,83 +21,30 @@ const app: Express = express();
 app.use(bodyParser.json())
 const port = process.env.PORT || 8080;
 
-let servers: any[] = []
 
 app.get('/', (req, res) => {
   res.send("FileSystem");
 })
 
-app.post('/initConn', function (req, res) {
-  axios({
-    method: 'post',
-    url: 'http://localhost:3001/file/init/1b02d8d2476',
-    data: {
-      serverPort: 3002,
-    }
-  }).then(
-    (response) => {
-      console.log(response.data);
-      res.send(response.data);
-    }
-  ).catch(
-    (error) => {
-      console.log(error);
-    }
-  );
-
-})
-
 //Routes for files manipulation
-if (fileRoutes !== null) {
+if (!db.isProxy) {
   app.use('/file', fileRoutes);
+}else{
+  app.use('/api',proxyRoutes)
 }
-
-interface serverBody {
-  id: string,
-  host: string,
-  port: number,
-  usage: number,
-}
-//Route to receive a server 
-app.post('/receiveServer', function (req, res) {
-  const server = map(req.body, (server: serverBody) => {
-    return {
-      id: server.id,
-      host: server.host,
-      port: server.port,
-      usage: server.usage,
-      };
-  });
-  servers.push(server);
-});
-//remove server from servers array
-app.post('/removeServer', function (req, res) {
-  const server = map(req.body, (server: serverBody) => {
-    return {
-      id: server.id,
-      host: server.host,
-      port: server.port,
-      usage: server.usage,
-      };
-  });
-  servers = servers.filter((server) => server.id !== server.id);
-});
-//get the servers connected
-app.get('/getServers', function (req, res) {
-  //Make a table with console.table
-
-  
-  res.send(servers);
-});
-
-
-
-
-
 
 app.listen(port, () => {
   logger.info("-------------------------------------------Server started---------------------------------------------");
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  //make a request to the server with port 3001 check if was nul, if it was the server is not reachable
+  let get = axios.get('http://localhost:3001')
+  get.then((res) => {
+    console.log("Server 3001 is reachable");
+  }
+  ).catch((err) => {
+    console.log("Server 3001 is not reachable");
+  })
+
 });
 
 export default app;

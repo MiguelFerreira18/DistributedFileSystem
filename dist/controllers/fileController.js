@@ -7,11 +7,9 @@ const logger_1 = require("../config/logger");
 const path_1 = require("path");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const module_1 = __importDefault(require("../config/module"));
-const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
-const index_1 = __importDefault(require("../src/index"));
 const crypto_1 = __importDefault(require("crypto"));
-const groups_1 = __importDefault(require("../src/groups"));
 const console_1 = require("console");
+const chooseServer_1 = require("../Modules/chooseServer");
 const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
 const getPage = (req, res) => {
     res.send("GET request to the homepage");
@@ -20,13 +18,10 @@ const init = (req, res) => {
     try {
         console.log("Initializing file system");
         console.log("Group hash: " + req.params.groupHash);
-        module_1.default.init(req.params.groupHash).then((isGroup) => {
+        module_1.default.init(req.params.groupHash, req.body.server).then((isGroup) => {
             if (isGroup) {
                 console.log("Group is initialized");
-                //!VERIFICAR ESTA PARTE DO CODIGO
-                //dynamic proxy servers
-                index_1.default.use(`/api/${req.params.groupHash}`, (0, express_http_proxy_1.default)(`http://localhost:${req.body.serverPort}/projName`));
-                res.send(`Group ${req.params.groupHash} is initialized at http://localhost:${req.body.serverPort} \n\n\n Distributer server route: http://localhost:3002/api/${req.params.groupHash}`);
+                res.send("Group is initialized");
             }
             else {
                 console.log("Group is not initialized");
@@ -44,11 +39,12 @@ const sendFile = async (req, res) => {
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
         const data = JSON.stringify(req.body);
-        const getServer = await activeServers(fileName);
+        const getServer = await (0, chooseServer_1.groupNodeReturn)(fileName);
         if (getServer === null)
             throw console_1.error;
         await module_1.default.sendFile(fileName, data, getServer);
-        handleSuccess(1, filePath, data);
+        //Mudar estes Handlers
+        handleSuccess(2, filePath, data);
         const jsonData = JSON.parse(data);
         res.send(jsonData);
     }
@@ -59,13 +55,14 @@ const sendFile = async (req, res) => {
     }
 };
 const readFile = async (req, res) => {
-    const fileName = req.params.fileKey;
+    //Apply message digest to the fileKey
+    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
+    console.log(filePath);
     try {
         const data = await module_1.default.read(fileName);
         handleSuccess(1, filePath, data);
-        const jsonData = JSON.parse(data);
-        res.send(jsonData);
+        res.send(data);
     }
     catch (err) {
         console.log(err);
@@ -78,9 +75,8 @@ const writeFile = async (req, res) => {
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
     const md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
-    const _8_first_bytes_as_hex = "0x" + md5.substr(0, 16);
     try {
-        await module_1.default.create(_8_first_bytes_as_hex, data);
+        await module_1.default.create(md5, data);
         handleSuccess(2, filePath, data);
         res.send("File saved successfully");
     }
@@ -91,7 +87,7 @@ const writeFile = async (req, res) => {
     }
 };
 const updateFile = async (req, res) => {
-    const fileName = req.params.fileKey;
+    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
     try {
@@ -106,7 +102,7 @@ const updateFile = async (req, res) => {
     }
 };
 const deleteFile = async (req, res) => {
-    const fileName = req.params.fileKey;
+    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
         await module_1.default.delete(fileName);
@@ -166,35 +162,6 @@ const handleSuccess = async (successLevel, filePath, data) => {
             logger_1.logger.info("Success from " + filePath);
             break;
     }
-};
-const chooseNode = async (fileName) => {
-    let count = 0;
-    for (const [key, value] of groups_1.default.groupMap) {
-        if (value.isActive) {
-            count++;
-        }
-    }
-    const Nodes_N = BigInt(count);
-    let md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
-    let _8_first_bytes_as_hex = "0x" + md5.substr(0, 16);
-    const hugeHex = BigInt(_8_first_bytes_as_hex);
-    const destNode = hugeHex % Nodes_N;
-    return { destNode, _8_first_bytes_as_hex };
-};
-const activeServers = async (fileName) => {
-    const destNode = (await chooseNode(fileName)).destNode;
-    let group;
-    let count = 0;
-    for (const [key, value] of groups_1.default.groupMap) {
-        if (BigInt(count) === destNode) {
-            group = value;
-            return group;
-        }
-        else if (value.isActive) {
-            count++;
-        }
-    }
-    return null;
 };
 exports.default = {
     init,
