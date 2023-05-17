@@ -6,5 +6,7 @@
     "viewsDir":"views",
     "controllersDir":"controllers",
     "controllerIdPort":"192.168.10.1",
+    "hasComunicated":false,
+    "isProxy":false,
     "dbgLevel":"error"
 }

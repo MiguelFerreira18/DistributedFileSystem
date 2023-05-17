@@ -25,6 +25,7 @@ interface DbKernel {
   read: (fileName: any) => Promise<string>;
   delete: (params: any) => Promise<void>;
   groupServerStatus: () => Promise<void>;
+  announceLeader: (req:any,res:any) => Promise<void>;
 }
 
 dbKernel = {
@@ -84,6 +85,13 @@ dbKernel = {
   groupServerStatus: async function () {
     await console.log(groupMap)
     
+  },
+  announceLeader: async function (req:any,res:any) {
+    //Quando o server é iniciado ele manda uma request para o outro servidor do mesmo cluster e manda o seu int
+    
+    //O outro server recebe e compara com o seu int e se for maior e decide se é ou não o novo lider
+
+
   }
 };
 

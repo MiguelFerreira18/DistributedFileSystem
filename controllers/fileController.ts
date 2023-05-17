@@ -20,7 +20,7 @@ const init = (req: any, res: any) => {
     console.log("Group hash: " + req.params.groupHash);
     dbKernel.init(req.params.groupHash).then((isGroup) => {
       if (isGroup) {
-        console.log("Group is initialized");
+        console.log("Group is initialized");      
 
         //!VERIFICAR ESTA PARTE DO CODIGO
         //dynamic proxy servers

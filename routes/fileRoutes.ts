@@ -1,5 +1,7 @@
 import express from 'express';
 import fileController from '../controllers/fileController'
+import pardal from '../config/dbPardal.json'
+
 
 const router = express.Router();
 
@@ -13,6 +15,6 @@ router.post('/update/:fileKey',fileController.updateFile);
 router.post('/delete/:fileKey',fileController.deleteFile);
 router.get('/status',fileController.groupServerStatus);
 
-export default router;
 
+export default pardal.isProxy ? null : router;
 
