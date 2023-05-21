@@ -8,5 +8,6 @@
     "controllerIdPort":"127.0.0.1",
     "hasComunicated":false,
     "isProxy":false,
+    "serverId":0,
     "dbgLevel":"error"
 }
