@@ -56,17 +56,12 @@ dbKernel = {
     },
     update: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await writeFileAsync(filePath, JSON.stringify(data), "utf-8");
+        await writeFileAsync(filePath, data, "utf-8");
     },
     read: async function (fileName) {
-        console.log("err");
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        console.log("err2");
-        console.log(filePath);
         const data = await readFileAsync(filePath, "utf-8");
-        console.log("err3");
         const jsonData = JSON.parse(data);
-        console.log("err4");
         return jsonData;
     },
     delete: async function (fileName) {

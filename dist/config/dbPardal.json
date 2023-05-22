@@ -5,8 +5,9 @@
     "modelsDir": "models",
     "viewsDir": "views",
     "controllersDir": "controllers",
-    "controllerIdPort": "127.0.0.1",
+    "controllerIdPort": "localhost",
     "hasComunicated": false,
     "isProxy": false,
+    "serverId": 0,
     "dbgLevel": "error"
 }
