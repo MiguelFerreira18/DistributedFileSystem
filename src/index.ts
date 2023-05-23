@@ -7,7 +7,7 @@ import fileRoutes from "../routes/fileRoutes";
 import { mySubServers, subServer } from "../src/subGroup";
 import proxy from "express-http-proxy";
 import axios from "axios";
-import { has, map,toInteger} from "lodash";
+import { has, map, toInteger } from "lodash";
 import { groupMap, Group } from "../src/groups";
 import proxyRoutes from "../routes/proxyRoutes";
 import db from "../config/dbPardal.json";
@@ -82,17 +82,25 @@ async function electLeader() {
   } else if (hasCommunicated && !db.isProxy) {
     const promises = subServerOn.map(async (element) => {
       try {
-        console.log(`${element.serverAdress}election/${db.serverId}`)
-        const res = await axios.get(
-          `${element.serverAdress}election/${db.serverId}`
+        console.log(`${element.serverAdress}election/${db.serverId}`);
+        const res = await axios.post(
+          `${element.serverAdress}election/${db.serverId}`,
+          {
+            server: element.serverAdress,
+          }
         );
-        
-        if (res.data.becomeLeader) {
+        if ((res.status = 204)) {
+          console.log(
+            "Server " +
+              port +
+              " is not the leader because the other has already talked"
+          );
+          return;
+        } else if (res.data.becomeLeader) {
           try {
-            
-            await axios.post("http://localhost:3000/api/init/1b02d8d2476",{
-                server: `http://localhost:${port}/`,
-              });
+            await axios.post("http://localhost:3000/api/init/1b02d8d2476", {
+              server: `http://localhost:${port}/`,
+            });
             console.log("Server " + port + " is the leader");
           } catch (err) {
             console.log("Server " + port + " is not the leader");
@@ -100,8 +108,21 @@ async function electLeader() {
         }
 
         mySubServers.forEach((server) => {
-          server.isLeader = server.serverAdress === res.data.myServer.serverAdress;
+          server.isLeader =
+            server.serverAdress === res.data.myServer.serverAdress;
         });
+
+        // Find my server
+        const myServer = mySubServers.find((s) =>
+          s.serverAdress.includes(port.toString())
+        );
+        /*
+        This is the server that has the smaller id and because of that it has received a comm so when talking to 
+        other servers it wont make any deviations
+        */
+        if (myServer != null) {
+          myServer.response = true;
+        }
       } catch (err) {
         console.log("Server " + port + " is not the leader");
       }
@@ -113,11 +134,11 @@ async function electLeader() {
 
 async function initializeServer() {
   await reach();
-  console.log("log1")
+  console.log("log1");
   await communicateWithSubServers();
-  console.log("log2")
+  console.log("log2");
   await electLeader();
-  console.log("log3")
+  console.log("log3");
 }
 
 app.listen(port, async () => {
