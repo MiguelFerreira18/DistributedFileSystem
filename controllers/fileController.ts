@@ -5,6 +5,7 @@ import dbKernel from "../config/module";
 import crypto from "crypto";
 import { error } from "console";
 import { chooseNode, groupNodeReturn } from "../Modules/chooseServer";
+import { mySubServers, subServer } from "../src/subGroup";
 
 const folderPath = join(conf.home, conf.dbDir);
 
@@ -16,7 +17,7 @@ const init = (req: any, res: any) => {
   try {
     console.log("Initializing file system");
     console.log("Group hash: " + req.params.groupHash);
-    dbKernel.init(req.params.groupHash,req.body.server).then((isGroup) => {
+    dbKernel.init(req.params.groupHash, req.body.server).then((isGroup) => {
       if (isGroup) {
         console.log("Group is initialized");
         res.send("Group is initialized");
@@ -39,7 +40,7 @@ const sendFile = async (req: any, res: any) => {
     const getServer = await groupNodeReturn(fileName);
     if (getServer === null) throw error;
 
-    await dbKernel.sendFile(fileName, data, getServer);
+    await dbKernel.gossip(fileName, data)//!PENSAR NA LOGICA DISTO DEPOIS;
     //Mudar estes Handlers
     handleSuccess(2, filePath, data);
     const jsonData = JSON.parse(data);
@@ -69,9 +70,18 @@ const readFile = async (req: any, res: any) => {
 };
 
 const writeFile = async (req: any, res: any) => {
+  const port = process.env.PORT || 8080;
   const fileName = req.params.fileKey;
   const filePath = join(folderPath, fileName);
   const data: string = JSON.stringify(req.body);
+
+  // Find my server
+  const myServer = mySubServers.find((s) =>
+    s.serverAdress.includes(port.toString())
+  );
+  if (myServer?.isLeader)
+    await dbKernel.gossip(fileName, data)
+
   const md5 = crypto.createHash("md5").update(fileName).digest("hex");
   try {
     await dbKernel.create(md5, data);

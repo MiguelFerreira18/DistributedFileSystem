@@ -6,6 +6,7 @@ import conf from "../config/dbPardal.json";
 import { groupMap, Group } from "../src/groups";
 import proxy from "express-http-proxy";
 import axios from "axios";
+import { mySubServers, subServer } from "../src/subGroup";
 
 let dbKernel: DbKernel;
 
@@ -20,7 +21,7 @@ const deleteFileAsync = promisify(fs.unlink);
 
 interface DbKernel {
   init: (groupHash: string, server: string) => Promise<boolean>;
-  sendFile: (fileName: string, data: string, destNode: any) => Promise<void>;
+  gossip: (fileName: string, data: string) => Promise<void>;
   create: (fileName: any, data: any) => Promise<void>;
   update: (fileName: any, data: any) => Promise<void>;
   read: (fileName: any) => Promise<string>;
@@ -51,16 +52,18 @@ dbKernel = {
     }
     return false;
   },
-  sendFile: async function (fileName: string, body: string, destNode: Group) {
-    //Mudar quando se conseguir fazer a reverse proxy
-    //const url = `${destNode.server}/file/write/${fileName}`;
-    const url = `http://${destNode.server}/write/${fileName}`;
-
-    axios({
-      method: "post",
-      url: url,
-      data: { body },
+  gossip: async function (fileName: string, body: string) {//!PENSAR NESTA LOGICA DEPOIS
+    //get the server and send the file to each server that is not the leader
+    mySubServers.forEach((element) => {
+      if (!element.isLeader) {
+        const url = `http://${element.serverAdress}/write/${fileName}`;
+        axios.post(url,{ body 
+        });
+      }
     });
+
+
+
   },
   create: async function (fileName: any, data: any) {
     const filePath = join(folderPath, fileName + ".json");

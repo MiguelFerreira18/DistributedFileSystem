@@ -30,6 +30,7 @@ app.get("/", (req, res) => {
 if (!db.isProxy) {
   app.use("/file", fileRoutes);
   app.use("/election", subServerRouter);
+  //Call the gossip protocol
 } else {
   app.use("/api", proxyRoutes);
 }
