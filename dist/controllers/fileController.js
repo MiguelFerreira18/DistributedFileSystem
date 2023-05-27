@@ -10,7 +10,14 @@ const module_1 = __importDefault(require("../config/module"));
 const crypto_1 = __importDefault(require("crypto"));
 const console_1 = require("console");
 const chooseServer_1 = require("../Modules/chooseServer");
+const subGroup_1 = require("../src/subGroup");
 const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
+const WRITE_OPERATION = "write";
+const UPDATE_OPERATION = "update";
+const READ_OPERATION = "read";
+const DELETE_OPERATION = "delete";
+const SEND_OPERATION = "send";
+const PORT = process.env.PORT || 8080;
 const getPage = (req, res) => {
     res.send("GET request to the homepage");
 };
@@ -42,7 +49,7 @@ const sendFile = async (req, res) => {
         const getServer = await (0, chooseServer_1.groupNodeReturn)(fileName);
         if (getServer === null)
             throw console_1.error;
-        await module_1.default.sendFile(fileName, data, getServer);
+        await module_1.default.gossip(fileName, data, SEND_OPERATION); //!PENSAR NA LOGICA DISTO DEPOIS;
         //Mudar estes Handlers
         handleSuccess(2, filePath, data);
         const jsonData = JSON.parse(data);
@@ -56,7 +63,10 @@ const sendFile = async (req, res) => {
 };
 const readFile = async (req, res) => {
     //Apply message digest to the fileKey
-    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
+    const fileName = crypto_1.default
+        .createHash("md5")
+        .update(req.params.fileKey)
+        .digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
     console.log(filePath);
     try {
@@ -74,6 +84,10 @@ const writeFile = async (req, res) => {
     const fileName = req.params.fileKey;
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
+    // Find my server
+    const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+    if (myServer?.isLeader)
+        await module_1.default.gossip(fileName, data, WRITE_OPERATION);
     const md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
     try {
         await module_1.default.create(md5, data);
@@ -87,10 +101,17 @@ const writeFile = async (req, res) => {
     }
 };
 const updateFile = async (req, res) => {
-    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
+    const fileName = crypto_1.default
+        .createHash("md5")
+        .update(req.params.fileKey)
+        .digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
     try {
+        // Find my server
+        const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+        if (myServer?.isLeader)
+            await module_1.default.gossip(fileName, data, UPDATE_OPERATION);
         await module_1.default.update(fileName, data);
         handleSuccess(3, filePath, data);
         res.send("File updated successfully");
@@ -102,9 +123,16 @@ const updateFile = async (req, res) => {
     }
 };
 const deleteFile = async (req, res) => {
-    const fileName = crypto_1.default.createHash("md5").update(req.params.fileKey).digest("hex");
+    const fileName = crypto_1.default
+        .createHash("md5")
+        .update(req.params.fileKey)
+        .digest("hex");
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
+        // Find my server
+        const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+        if (myServer?.isLeader)
+            await module_1.default.gossip(fileName, "", UPDATE_OPERATION);
         await module_1.default.delete(fileName);
         handleSuccess(4, filePath);
         res.send("File deleted successfully");
@@ -113,6 +141,15 @@ const deleteFile = async (req, res) => {
         console.log(err);
         handleErrors(4, err, filePath);
         res.status(500).send("Error deleting file");
+    }
+};
+const receive = async (req, res) => {
+    try {
+        await module_1.default.receiveFile(req, res);
+    }
+    catch (error) {
+        console.log(`Error in the action ${req.data.functionality} `);
+        res.status(400).send("ERROR in receiving file");
     }
 };
 const groupServerStatus = async (req, res) => {

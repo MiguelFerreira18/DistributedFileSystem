@@ -1,24 +1,48 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
+const fs_1 = __importStar(require("fs"));
 const path_1 = __importDefault(require("path"));
 const path_2 = require("path");
-const util_1 = require("util");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const groups_1 = require("../src/groups");
 const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
 const axios_1 = __importDefault(require("axios"));
+const subGroup_1 = require("../src/subGroup");
 let dbKernel;
 let home;
 let dbDir;
 const folderPath = (0, path_2.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
-const readFileAsync = (0, util_1.promisify)(fs_1.default.readFile);
-const writeFileAsync = (0, util_1.promisify)(fs_1.default.writeFile);
-const appendFileAsync = (0, util_1.promisify)(fs_1.default.appendFile);
-const deleteFileAsync = (0, util_1.promisify)(fs_1.default.unlink);
+const WRITE_OPERATION = "write";
+const UPDATE_OPERATION = "update";
+const READ_OPERATION = "read";
+const DELETE_OPERATION = "delete";
+const SEND_OPERATION = "send";
 dbKernel = {
     init: async function (groupHash, server) {
         home = dbPardal_json_1.default.home;
@@ -40,40 +64,63 @@ dbKernel = {
         }
         return false;
     },
-    sendFile: async function (fileName, body, destNode) {
-        //Mudar quando se conseguir fazer a reverse proxy
-        //const url = `${destNode.server}/file/write/${fileName}`;
-        const url = `http://${destNode.server}/write/${fileName}`;
-        (0, axios_1.default)({
-            method: "post",
-            url: url,
-            data: { body },
+    gossip: async function (fileName, body, functionality) {
+        //!PENSAR NESTA LOGICA DEPOIS
+        //get the server and send the file to each server that is not the leader
+        subGroup_1.mySubServers.forEach((element) => {
+            if (!element.isLeader) {
+                const url = `http://${element.serverAdress}/receive/${fileName}`;
+                axios_1.default.post(url, {
+                    body,
+                    functionality
+                });
+            }
         });
     },
     create: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await appendFileAsync(filePath, data, "utf-8");
+        await (0, fs_1.appendFileSync)(filePath, data, "utf-8");
     },
     update: async function (fileName, data) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await writeFileAsync(filePath, data, "utf-8");
+        await (0, fs_1.writeFileSync)(filePath, data, "utf-8");
     },
     read: async function (fileName) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        const data = await readFileAsync(filePath, "utf-8");
+        const data = await (0, fs_1.readFileSync)(filePath, "utf-8");
         const jsonData = JSON.parse(data);
         return jsonData;
     },
     delete: async function (fileName) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await deleteFileAsync(filePath);
+        await (0, fs_1.unlinkSync)(filePath);
     },
     groupServerStatus: async function () {
         await console.log(groups_1.groupMap);
     },
-    announceLeader: async function (req, res) {
-        //Quando o server é iniciado ele manda uma request para o outro servidor do mesmo cluster e manda o seu int
-        //O outro server recebe e compara com o seu int e se for maior e decide se é ou não o novo lider
+    receiveFile: async function (req, res) {
+        const FUNCTIONALITY = req.data.functionality;
+        const fileName = req.params.fileName;
+        const body = req.data.body;
+        switch (FUNCTIONALITY) {
+            case WRITE_OPERATION:
+                await this.create(fileName, body);
+                break;
+            case UPDATE_OPERATION:
+                await this.update(fileName, body);
+                break;
+            case READ_OPERATION:
+                await this.read(fileName);
+                break;
+            case DELETE_OPERATION:
+                await this.delete(fileName);
+                break;
+            default:
+                console.log("ERROR");
+                res.status(404).send("ERROR");
+                break;
+        }
+        res.status(200).send("ok");
     },
 };
 exports.default = dbKernel;

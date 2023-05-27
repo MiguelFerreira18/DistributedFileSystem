@@ -27,6 +27,7 @@ app.get("/", (req, res) => {
 if (!dbPardal_json_1.default.isProxy) {
     app.use("/file", fileRoutes_1.default);
     app.use("/election", subServerRoutes_1.default);
+    //Call the gossip protocol
 }
 else {
     app.use("/api", proxyRoutes_1.default);
@@ -81,8 +82,16 @@ async function electLeader() {
         const promises = subServerOn.map(async (element) => {
             try {
                 console.log(`${element.serverAdress}election/${dbPardal_json_1.default.serverId}`);
-                const res = await axios_1.default.get(`${element.serverAdress}election/${dbPardal_json_1.default.serverId}`);
-                if (res.data.becomeLeader) {
+                const res = await axios_1.default.post(`${element.serverAdress}election/${dbPardal_json_1.default.serverId}`, {
+                    server: element.serverAdress,
+                });
+                if ((res.status = 204)) {
+                    console.log("Server " +
+                        port +
+                        " is not the leader because the other has already talked");
+                    return;
+                }
+                else if (res.data.becomeLeader) {
                     try {
                         await axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
                             server: `http://localhost:${port}/`,
@@ -94,8 +103,18 @@ async function electLeader() {
                     }
                 }
                 subGroup_1.mySubServers.forEach((server) => {
-                    server.isLeader = server.serverAdress === res.data.myServer.serverAdress;
+                    server.isLeader =
+                        server.serverAdress === res.data.myServer.serverAdress;
                 });
+                // Find my server
+                const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
+                /*
+                This is the server that has the smaller id and because of that it has received a comm so when talking to
+                other servers it wont make any deviations
+                */
+                if (myServer != null) {
+                    myServer.response = true;
+                }
             }
             catch (err) {
                 console.log("Server " + port + " is not the leader");

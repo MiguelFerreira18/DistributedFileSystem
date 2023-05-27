@@ -7,13 +7,15 @@ const router = express.Router();
 
 router.get('/',fileController.getPage)
 router.post('/init/:groupHash',fileController.init)
-router.post('/sendFile/:fileKey',fileController.sendFile);
-router.get("/read/:fileKey",fileController.readFile);
-router.post("/write/:fileKey",fileController.writeFile);
-router.post('/update/:fileKey',fileController.updateFile);
-router.post('/delete/:fileKey',fileController.deleteFile);
+router.post('/receive/:fileName',fileController.receive);
 router.get('/status',fileController.groupServerStatus);
 
+router.get("/read/:fileName",fileController.readFile);
+router.post("/write/:fileName",fileController.writeFile);
+router.post('/update/:fileName',fileController.updateFile);
+router.post('/delete/:fileName',fileController.deleteFile);
+
+//router.post('/sendFile/:fileName',fileController.sendFile);
 
 export default router;
 
