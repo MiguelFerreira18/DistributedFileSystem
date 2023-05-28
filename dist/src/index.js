@@ -14,10 +14,12 @@ const lodash_1 = require("lodash");
 const proxyRoutes_1 = __importDefault(require("../routes/proxyRoutes"));
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const subServerRoutes_1 = __importDefault(require("../routes/subServerRoutes"));
+const recuperateActions_1 = require("../Modules/recuperateActions");
+const logs_1 = __importDefault(require("../src/logs"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
-const port = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
 let hasCommunicated = false;
 let subServerOn = [];
 app.get("/", (req, res) => {
@@ -61,7 +63,7 @@ async function callSubServer(element) {
 async function communicateWithSubServers() {
     if (!dbPardal_json_1.default.isProxy) {
         const promises = subGroup_1.mySubServers
-            .filter((element) => element.serverAdress.search(port.toString()) < 0)
+            .filter((element) => element.serverAdress.search(PORT.toString()) < 0)
             .map(callSubServer);
         await Promise.all(promises);
     }
@@ -70,12 +72,12 @@ async function electLeader() {
     if (!hasCommunicated && !dbPardal_json_1.default.isProxy) {
         try {
             await axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
-                server: `http://localhost:${port}/`,
+                server: `http://localhost:${PORT}/`,
             });
-            console.log("Server " + port + " is the leader");
+            console.log("Server " + PORT + " is the leader");
         }
         catch (err) {
-            console.log("Server " + port + " is not the leader");
+            console.log("Server " + PORT + " is not the leader");
         }
     }
     else if (hasCommunicated && !dbPardal_json_1.default.isProxy) {
@@ -87,19 +89,19 @@ async function electLeader() {
                 });
                 if ((res.status = 204)) {
                     console.log("Server " +
-                        port +
+                        PORT +
                         " is not the leader because the other has already talked");
                     return;
                 }
                 else if (res.data.becomeLeader) {
                     try {
                         await axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
-                            server: `http://localhost:${port}/`,
+                            server: `http://localhost:${PORT}/`,
                         });
-                        console.log("Server " + port + " is the leader");
+                        console.log("Server " + PORT + " is the leader");
                     }
                     catch (err) {
-                        console.log("Server " + port + " is not the leader");
+                        console.log("Server " + PORT + " is not the leader");
                     }
                 }
                 subGroup_1.mySubServers.forEach((server) => {
@@ -107,7 +109,7 @@ async function electLeader() {
                         server.serverAdress === res.data.myServer.serverAdress;
                 });
                 // Find my server
-                const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
+                const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
                 /*
                 This is the server that has the smaller id and because of that it has received a comm so when talking to
                 other servers it wont make any deviations
@@ -117,10 +119,35 @@ async function electLeader() {
                 }
             }
             catch (err) {
-                console.log("Server " + port + " is not the leader");
+                console.log("Server " + PORT + " is not the leader");
             }
         });
         await Promise.all(promises);
+    }
+}
+async function retreiveLogs() {
+    subGroup_1.mySubServers.forEach(async (element) => {
+        try {
+            if (element.serverAdress.search(PORT.toString()) < 0) {
+                const log = await axios_1.default.get(`${element.serverAdress}/logs/read`);
+                logs_1.default.push(log.data);
+            }
+            console.log("1234");
+        }
+        catch (err) {
+            console.log(err);
+            //!METER AQUI O LOGGER
+        }
+    });
+    try {
+        console.log("2");
+        await (0, recuperateActions_1.replicateFromLogs)();
+        console.log("3");
+    }
+    catch (err) {
+        console.log(err);
+        console.log("3");
+        //!METER AQUI O LOGGER
     }
 }
 async function initializeServer() {
@@ -130,13 +157,15 @@ async function initializeServer() {
     console.log("log2");
     await electLeader();
     console.log("log3");
+    await retreiveLogs();
+    console.log("log4");
 }
-app.listen(port, async () => {
+app.listen(PORT, async () => {
     dbPardal_json_1.default.serverId = (0, lodash_1.toInteger)(Math.random() * 10001);
     console.log(dbPardal_json_1.default.serverId);
     console.log(`my server Id is  ${dbPardal_json_1.default.serverId}`);
     logger_1.logger.info("-------------------------------------------Server started---------------------------------------------");
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+    console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
     await initializeServer();
 });
 exports.default = app;

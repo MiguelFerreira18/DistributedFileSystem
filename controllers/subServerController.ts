@@ -84,49 +84,7 @@ const receiveId = async (req: any, res: Response) => {
     }
   } catch (err) {
     res.status(500).send("Error receiving id");
+    //ERROR RECEIVING THE ID OF OTHER SERVER.
   }
 };
-
-/*
-//Receive if is leader or not
-const election = async (req: Request, res: Response) => {
-  try {
-    const port = process.env.PORT || 8080;
-    let becomeLeader = req.body.becomeLeader;
-    //myServer == The other server from receivedId (ou seja o que mandou o request)
-    let myServer = req.body.myServer;
-    //find my server
-    let myServerIndex = mySubServers.findIndex((s) => {
-      return s.serverAdress.search(port.toString()) >= 0;
-    });
-    //atualiza o servidor do request
-    mySubServers[myServerIndex] = myServer;
-    //if The other server says i'm not the leader i will change my state in the list and and do nothing
-    if (!becomeLeader) {
-      //find my server
-      let myServer = mySubServers.find((s) => {
-        return s.serverAdress.search(port.toString()) >= 0;
-      });
-      if (myServer) myServer.isLeader = false;
-    } else { //If the other server says i'm the leader i will change my state and i will make a request to the proxy to become the receiver
-      //find my server
-      let myServer = mySubServers.find((s) => {
-        return s.serverAdress.search(port.toString()) >= 0;
-      });
-      if (myServer) myServer.isLeader = true;
-      //Stablish the leader in the proxy
-      axios({
-        method: "post",
-        url: "http://localhost:3000/api/init/1b02d8d2476",
-      });
-    }
-    res.status(200).json({
-      message: "ServerId received",
-      becomeLeader: becomeLeader,
-    });
-  } catch (err) {
-      res.status(500).send("Error receiving id");
-    }
-};
-*/
 export default { receiveId };

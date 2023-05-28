@@ -8,10 +8,11 @@ const fileController_1 = __importDefault(require("../controllers/fileController"
 const router = express_1.default.Router();
 router.get('/', fileController_1.default.getPage);
 router.post('/init/:groupHash', fileController_1.default.init);
-router.post('/sendFile/:fileKey', fileController_1.default.sendFile);
-router.get("/read/:fileKey", fileController_1.default.readFile);
-router.post("/write/:fileKey", fileController_1.default.writeFile);
-router.post('/update/:fileKey', fileController_1.default.updateFile);
-router.post('/delete/:fileKey', fileController_1.default.deleteFile);
+router.post('/receive/:fileName', fileController_1.default.receive);
 router.get('/status', fileController_1.default.groupServerStatus);
+router.get("/read/:fileName", fileController_1.default.readFile);
+router.post("/write/:fileName", fileController_1.default.writeFile);
+router.post('/update/:fileName', fileController_1.default.updateFile);
+router.post('/delete/:fileName', fileController_1.default.deleteFile);
+//router.post('/sendFile/:fileName',fileController.sendFile);
 exports.default = router;

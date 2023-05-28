@@ -8,13 +8,10 @@ const path_1 = require("path");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const module_1 = __importDefault(require("../config/module"));
 const crypto_1 = __importDefault(require("crypto"));
-const console_1 = require("console");
-const chooseServer_1 = require("../Modules/chooseServer");
 const subGroup_1 = require("../src/subGroup");
 const folderPath = (0, path_1.join)(dbPardal_json_1.default.home, dbPardal_json_1.default.dbDir);
 const WRITE_OPERATION = "write";
 const UPDATE_OPERATION = "update";
-const READ_OPERATION = "read";
 const DELETE_OPERATION = "delete";
 const SEND_OPERATION = "send";
 const PORT = process.env.PORT || 8080;
@@ -28,6 +25,7 @@ const init = (req, res) => {
         module_1.default.init(req.params.groupHash, req.body.server).then((isGroup) => {
             if (isGroup) {
                 console.log("Group is initialized");
+                handleSuccess(6, "none");
                 res.send("Group is initialized");
             }
             else {
@@ -41,37 +39,29 @@ const init = (req, res) => {
         res.status(500).send("Error initializing file system");
     }
 };
-const sendFile = async (req, res) => {
-    const fileName = req.params.fileKey;
-    const filePath = (0, path_1.join)(folderPath, fileName);
-    try {
-        const data = JSON.stringify(req.body);
-        const getServer = await (0, chooseServer_1.groupNodeReturn)(fileName);
-        if (getServer === null)
-            throw console_1.error;
-        await module_1.default.gossip(fileName, data, SEND_OPERATION); //!PENSAR NA LOGICA DISTO DEPOIS;
-        //Mudar estes Handlers
-        handleSuccess(2, filePath, data);
-        const jsonData = JSON.parse(data);
-        res.send(jsonData);
-    }
-    catch (err) {
-        console.log(err);
-        handleErrors(1, err, filePath);
-        res.status(500).send("Error reading file");
-    }
-};
+// const sendFile = async (req: any, res: any) => {
+// 	const fileName = req.params.fileName;
+// 	const filePath = join(folderPath, fileName);
+// 	try {
+// 		const data: string = JSON.stringify(req.body);
+// 		await dbKernel.gossip(fileName, data, SEND_OPERATION);
+// 		//Mudar estes Handlers
+// 		handleSuccess(5, fileName, data);
+// 		const jsonData = JSON.parse(data);
+// 		res.send(jsonData);
+// 	} catch (err) {
+// 		console.log(err);
+// 		handleErrors(1, err, filePath);
+// 		res.status(500).send("Error reading file");
+// 	}
+// };
 const readFile = async (req, res) => {
-    //Apply message digest to the fileKey
-    const fileName = crypto_1.default
-        .createHash("md5")
-        .update(req.params.fileKey)
-        .digest("hex");
+    //Apply message digest to the fileName
+    const fileName = await createDigest(req.params.fileName);
     const filePath = (0, path_1.join)(folderPath, fileName);
-    console.log(filePath);
     try {
         const data = await module_1.default.read(fileName);
-        handleSuccess(1, filePath, data);
+        handleSuccess(1, fileName, data);
         res.send(data);
     }
     catch (err) {
@@ -81,18 +71,18 @@ const readFile = async (req, res) => {
     }
 };
 const writeFile = async (req, res) => {
-    const fileName = req.params.fileKey;
+    const fileName = req.params.fileName;
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
     // Find my server
-    const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+    const myServer = await findMyServer();
     if (myServer?.isLeader)
         await module_1.default.gossip(fileName, data, WRITE_OPERATION);
-    const md5 = crypto_1.default.createHash("md5").update(fileName).digest("hex");
+    const md5 = createDigest(fileName);
     try {
         await module_1.default.create(md5, data);
-        handleSuccess(2, filePath, data);
-        res.send("File saved successfully");
+        handleSuccess(2, fileName, data);
+        res.send("File created successfully");
     }
     catch (err) {
         console.log(err);
@@ -101,19 +91,16 @@ const writeFile = async (req, res) => {
     }
 };
 const updateFile = async (req, res) => {
-    const fileName = crypto_1.default
-        .createHash("md5")
-        .update(req.params.fileKey)
-        .digest("hex");
+    const fileName = await createDigest(req.params.fileName);
     const filePath = (0, path_1.join)(folderPath, fileName);
     const data = JSON.stringify(req.body);
     try {
         // Find my server
-        const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+        const myServer = await findMyServer();
         if (myServer?.isLeader)
             await module_1.default.gossip(fileName, data, UPDATE_OPERATION);
         await module_1.default.update(fileName, data);
-        handleSuccess(3, filePath, data);
+        handleSuccess(3, fileName, data);
         res.send("File updated successfully");
     }
     catch (err) {
@@ -123,16 +110,13 @@ const updateFile = async (req, res) => {
     }
 };
 const deleteFile = async (req, res) => {
-    const fileName = crypto_1.default
-        .createHash("md5")
-        .update(req.params.fileKey)
-        .digest("hex");
+    const fileName = await createDigest(req.params.fileName);
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
         // Find my server
-        const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+        const myServer = await findMyServer();
         if (myServer?.isLeader)
-            await module_1.default.gossip(fileName, "", UPDATE_OPERATION);
+            await module_1.default.gossip(fileName, "", DELETE_OPERATION);
         await module_1.default.delete(fileName);
         handleSuccess(4, filePath);
         res.send("File deleted successfully");
@@ -146,6 +130,7 @@ const deleteFile = async (req, res) => {
 const receive = async (req, res) => {
     try {
         await module_1.default.receiveFile(req, res);
+        handleSuccess(7, req.data.body, req.params.fileName);
     }
     catch (error) {
         console.log(`Error in the action ${req.data.functionality} `);
@@ -181,32 +166,92 @@ const handleErrors = async (errorLevel, err, filePath) => {
             break;
     }
 };
-const handleSuccess = async (successLevel, filePath, data) => {
+const handleSuccess = async (successLevel, fileName, data) => {
+    const timeStamp = new Date().toISOString();
+    const dataObject = data ? { FileName: fileName, Data: data } : undefined;
     switch (successLevel) {
         case 1:
-            logger_1.logger.info("File read successfully with data: \n" + data + "\n from " + filePath);
+            const readLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "read",
+                DataObject: dataObject,
+            };
+            logger_1.logger.warn(readLog);
             break;
         case 2:
-            logger_1.logger.info("File saved successfully with data: \n" + data + "\n from " + filePath);
+            const writeLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "write",
+                DataObject: dataObject,
+            };
+            logger_1.logger.info(writeLog);
             break;
         case 3:
-            logger_1.logger.info("File updated successfully with data: \n" + data + "\n from " + filePath);
+            const updateLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "update",
+                DataObject: dataObject,
+            };
+            logger_1.logger.info(updateLog);
             break;
         case 4:
-            logger_1.logger.info("File deleted successfully from " + filePath);
+            const deleteLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "delete",
+                DataObject: dataObject,
+            };
+            logger_1.logger.info(deleteLog);
+            break;
+        case 5:
+            const sendLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "send",
+                DataObject: dataObject,
+            };
+            logger_1.logger.info(sendLog);
+            break;
+        case 6:
+            const initializingLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "init",
+                DataObject: undefined,
+            };
+            logger_1.logger.warn(initializingLog);
+            break;
+        case 7:
+            const receiveLog = {
+                TimeStamp: timeStamp,
+                LogType: "success",
+                Action: "receive",
+                DataObject: dataObject,
+            };
+            logger_1.logger.warn(receiveLog);
             break;
         default:
-            logger_1.logger.info("Success from " + filePath);
+            logger_1.logger.info("Success from " + fileName);
             break;
     }
 };
+const createDigest = async (fileName) => {
+    return crypto_1.default.createHash("md5").update(fileName).digest("hex");
+};
+const findMyServer = async () => {
+    return subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+};
 exports.default = {
     init,
-    sendFile,
+    //sendFile,
     getPage,
     readFile,
     writeFile,
     updateFile,
     deleteFile,
+    receive,
     groupServerStatus,
 };

@@ -65,14 +65,12 @@ dbKernel = {
         return false;
     },
     gossip: async function (fileName, body, functionality) {
-        //!PENSAR NESTA LOGICA DEPOIS
-        //get the server and send the file to each server that is not the leader
         subGroup_1.mySubServers.forEach((element) => {
             if (!element.isLeader) {
                 const url = `http://${element.serverAdress}/receive/${fileName}`;
                 axios_1.default.post(url, {
                     body,
-                    functionality
+                    functionality,
                 });
             }
         });
