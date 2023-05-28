@@ -135,7 +135,7 @@ const deleteFile = async (req: any, res: any) => {
 const receive = async (req: any, res: any) => {
 	try {
 		await dbKernel.receiveFile(req, res);
-		handleSuccess(7,req.data.body,req.params.fileName);
+		handleSuccess(7, req.data.body, req.params.fileName);
 	} catch (error) {
 		console.log(`Error in the action ${req.data.functionality} `);
 		res.status(400).send("ERROR in receiving file");
@@ -180,93 +180,73 @@ const handleSuccess = async (
 	fileName: string,
 	data?: string
 ) => {
+	const timeStamp = new Date().toISOString();
+	const dataObject = data ? { FileName: fileName, Data: data } : undefined;
+
 	switch (successLevel) {
 		case 1:
-			let readLog: logStruct;
-			readLog = {
-				TimeStamp: new Date().toISOString(),
+			const readLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "read",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
-			logger.info(readLog);
+			logger.warn(readLog);
 			break;
 		case 2:
-			let writeLog: logStruct;
-			writeLog = {
-				TimeStamp: new Date().toISOString(),
+			const writeLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "write",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
-
 			logger.info(writeLog);
 			break;
 		case 3:
-			let updateLog: logStruct;
-			updateLog = {
-				TimeStamp: new Date().toISOString(),
+			const updateLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "update",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
 			logger.info(updateLog);
 			break;
 		case 4:
-			let deleteLog: logStruct;
-			deleteLog = {
-				TimeStamp: new Date().toISOString(),
+			const deleteLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "delete",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
 			logger.info(deleteLog);
 			break;
 		case 5:
-			let sendLog: logStruct;
-			sendLog = {
-				TimeStamp: new Date().toISOString(),
+			const sendLog:logStruct= {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "send",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
 			logger.info(sendLog);
+			break;
 		case 6:
-			let initializingLog: logStruct;
-			initializingLog = {
-				TimeStamp: new Date().toISOString(),
+			const initializingLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "init",
 				DataObject: undefined,
 			};
 			logger.warn(initializingLog);
+			break;
 		case 7:
-			let receiveLog:logStruct;
-			receiveLog = {
-				TimeStamp: new Date().toISOString(),
+			const receiveLog:logStruct = {
+				TimeStamp: timeStamp,
 				LogType: "success",
 				Action: "receive",
-				DataObject: {
-					FileName: fileName,
-					Data: data,
-				},
+				DataObject: dataObject,
 			};
 			logger.warn(receiveLog);
+			break;
 		default:
 			logger.info("Success from " + fileName);
 			break;

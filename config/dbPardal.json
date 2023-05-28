@@ -4,6 +4,7 @@
     "routesDir":"routes",
     "modelsDir":"models",
     "viewsDir":"views",
+    "logsDir":"logs",
     "controllersDir":"controllers",
     "controllerIdPort":"localhost",
     "hasComunicated":false,
