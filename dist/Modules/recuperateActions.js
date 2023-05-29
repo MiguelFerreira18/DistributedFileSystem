@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.replicateFromLogs = void 0;
 const module_1 = __importDefault(require("../config/module"));
 const logs_1 = __importDefault(require("../src/logs"));
+const handleErrors_1 = require("../Modules/handleErrors");
 const PORT = process.env.PORT || 8080;
 const replicateFromLogs = async () => {
     try {
@@ -32,8 +33,7 @@ const replicateFromLogs = async () => {
                 const currentElement = timeStamps[i];
                 //Verifica qual dos elementos tem a data mais antiga
                 if (oldestElement == null ||
-                    currentElement.logStructure.TimeStamp <
-                        oldestElement.timeStamp) {
+                    currentElement.logStructure.TimeStamp < oldestElement.timeStamp) {
                     oldestElement = {
                         timeStamp: currentElement.logStructure.TimeStamp,
                         timstampStructure: currentElement,
@@ -50,6 +50,8 @@ const replicateFromLogs = async () => {
                 }
                 catch (err) {
                     console.log(err);
+                    //ERROR PERFORMING AN ACTION LOG THE NAME OF THE ACTION
+                    (0, handleErrors_1.handleErrors)("actions", err, "../Modules/recuperateActions.ts : 67");
                     continue;
                 }
                 //incrementa o index daquele log em especifico
@@ -70,8 +72,9 @@ const replicateFromLogs = async () => {
     }
     catch (error) {
         console.log(error);
+        //ERROR RETREIVING THE LOGS INNER PROBLEM
+        (0, handleErrors_1.handleErrors)("replicateFromLogs", error, "../Modules/recuperateActions.ts : 89");
     }
-    console.log("end");
 };
 exports.replicateFromLogs = replicateFromLogs;
 const actions = async (action, object) => {
@@ -84,6 +87,8 @@ const actions = async (action, object) => {
             }
             catch (err) {
                 console.log(err);
+                //ERROR CREATING INSIDE THE RETRIVE
+                (0, handleErrors_1.handleErrors)("write", err, "../Modules/recuperateActions.ts : 102", fileName);
             }
             break;
         case "update":
@@ -92,6 +97,8 @@ const actions = async (action, object) => {
             }
             catch (err) {
                 console.log(err);
+                //ERROR UPDATING INSIDE THE RETREIVE
+                (0, handleErrors_1.handleErrors)("update", err, "../Modules/recuperateActions.ts : 111", fileName);
             }
             break;
         case "delete":
@@ -100,6 +107,8 @@ const actions = async (action, object) => {
             }
             catch (err) {
                 console.log(err);
+                //ERROR DELETING INSIDE THE RETREIVE
+                (0, handleErrors_1.handleErrors)("delete", err, "../Modules/recuperateActions.ts : 120", fileName);
             }
             break;
     }

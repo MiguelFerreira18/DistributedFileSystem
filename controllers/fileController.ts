@@ -121,6 +121,7 @@ const receive = async (req: any, res: any) => {
 		handleSuccess("receive", req.data.body, req.params.fileName);
 	} catch (error) {
 		console.log(`Error in the action ${req.data.functionality} `);
+		//HANDLE ERROR ON RECEIVING A FILE
 		res.status(400).send("ERROR in receiving file");
 	}
 };

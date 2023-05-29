@@ -13,6 +13,7 @@ const init = async (req, res) => {
     }
     catch (error) {
         res.status(404).send("Error");
+        //ERROR INITIALIZING
     }
 };
 const getServers = async (req, res) => {

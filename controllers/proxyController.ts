@@ -12,6 +12,7 @@ const init = async (req: Request, res: Response) => {
     await dbKernel.init(groupHash, req.body.server);
   } catch (error) {
     res.status(404).send("Error");
+    //ERROR INITIALIZING
   }
 };
 
