@@ -5,6 +5,6 @@ import turnOnController from "../controllers/TurnOnController";
 const router = express.Router();
 
 
-router.get("/", turnOnController.receiveLog);
+router.get("/receive", turnOnController.receiveLog);
 
 export default router;

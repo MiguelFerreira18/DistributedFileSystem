@@ -19,11 +19,18 @@ const handleErrors = async (
 		case "delete":
 			logger.error("Error deleting file " + err + " from " + filePath);
 			break;
+		case "init":
+			logger.error("Error initializing" + err + " from " + filePath);
+			break;
 		case "reach":
-			logger.error(`Error in line ${errorLocation}: Problem reaching the server`);
+			logger.error(
+				`Error in line ${errorLocation}: Problem reaching the server`
+			);
 			break;
 		case "action":
-			logger.error(`Error in line ${errorLocation}: doing one of the CRUD actions `);
+			logger.error(
+				`Error in line ${errorLocation}: doing one of the CRUD actions `
+			);
 			break;
 		case "replicateFromLogs":
 			logger.error(`Error in line ${errorLocation}: Problem replicating logs`);
@@ -38,7 +45,9 @@ const handleErrors = async (
 			logger.error(`Error in line ${errorLocation}: Problem retreiving logs`);
 			break;
 		case "callSubServer":
-			logger.error(`Error in line ${errorLocation}: Problem calling the sub server`);
+			logger.error(
+				`Error in line ${errorLocation}: Problem calling the sub server`
+			);
 			break;
 		default:
 			logger.error("Error " + err + " from " + filePath);
@@ -46,4 +55,4 @@ const handleErrors = async (
 	}
 };
 
-export {handleErrors}
+export { handleErrors };
