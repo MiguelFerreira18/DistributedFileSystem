@@ -1,10 +1,8 @@
 import { Request, Response } from "express";
-import { join } from "path";
-import conf from "../config/dbPardal.json";
 import dbKernel from "../config/module";
 import { chooseNode, groupNodeReturn } from "../Modules/chooseServer";
 import { groupMap, Group } from "../src/groups";
-import { logger } from "../config/logger";
+import { handleErrors } from "../Modules/handleErrors";
 
 const init = async (req: Request, res: Response) => {
   try {
@@ -13,6 +11,7 @@ const init = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(404).send("Error");
     //ERROR INITIALIZING
+    handleErrors("init", error);
   }
 };
 
