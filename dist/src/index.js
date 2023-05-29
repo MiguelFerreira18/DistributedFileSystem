@@ -16,6 +16,8 @@ const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const subServerRoutes_1 = __importDefault(require("../routes/subServerRoutes"));
 const recuperateActions_1 = require("../Modules/recuperateActions");
 const logs_1 = __importDefault(require("../src/logs"));
+const TurnOnRoutes_1 = __importDefault(require("../routes/TurnOnRoutes"));
+const handleErrors_1 = require("../Modules/handleErrors");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
@@ -29,6 +31,7 @@ app.get("/", (req, res) => {
 if (!dbPardal_json_1.default.isProxy) {
     app.use("/file", fileRoutes_1.default);
     app.use("/election", subServerRoutes_1.default);
+    app.use("/logs", TurnOnRoutes_1.default);
     //Call the gossip protocol
 }
 else {
@@ -47,6 +50,8 @@ async function reach() {
     }
     catch (err) {
         console.log("Server is not reachable");
+        //POBLEM WHILE SEEING IF ITS REACHABLE IGNORE
+        (0, handleErrors_1.handleErrors)("reach", err, "../src/index.ts : 52");
     }
 }
 async function callSubServer(element) {
@@ -58,6 +63,8 @@ async function callSubServer(element) {
     }
     catch (err) {
         console.log("Server " + element.serverAdress + " is not reachable");
+        //ERROR CALLING SUB SERVERS
+        (0, handleErrors_1.handleErrors)("callSubServer", err, "../src/index.ts : 65");
     }
 }
 async function communicateWithSubServers() {
@@ -78,6 +85,8 @@ async function electLeader() {
         }
         catch (err) {
             console.log("Server " + PORT + " is not the leader");
+            //PROBLEM ANNOUNCING THE LEADER
+            (0, handleErrors_1.handleErrors)("electLeader", err, "../src/index.ts : 89");
         }
     }
     else if (hasCommunicated && !dbPardal_json_1.default.isProxy) {
@@ -102,6 +111,8 @@ async function electLeader() {
                     }
                     catch (err) {
                         console.log("Server " + PORT + " is not the leader");
+                        //PROBLEM ANNOUCING THE LEADER
+                        (0, handleErrors_1.handleErrors)("electLeader", err, "../src/index.ts : 117");
                     }
                 }
                 subGroup_1.mySubServers.forEach((server) => {
@@ -120,6 +131,8 @@ async function electLeader() {
             }
             catch (err) {
                 console.log("Server " + PORT + " is not the leader");
+                //PROBLEM ANNOUNCING THE LEADER
+                (0, handleErrors_1.handleErrors)("electLeader", err, "../src/index.ts : 140");
             }
         });
         await Promise.all(promises);
@@ -132,22 +145,20 @@ async function retreiveLogs() {
                 const log = await axios_1.default.get(`${element.serverAdress}/logs/read`);
                 logs_1.default.push(log.data);
             }
-            console.log("1234");
         }
         catch (err) {
             console.log(err);
-            //!METER AQUI O LOGGER
+            //ERROR RETREIVING LOGS
+            (0, handleErrors_1.handleErrors)("retreiveLogsAxios", err, "../src/index.ts : 158");
         }
     });
     try {
-        console.log("2");
         await (0, recuperateActions_1.replicateFromLogs)();
-        console.log("3");
     }
     catch (err) {
         console.log(err);
-        console.log("3");
-        //!METER AQUI O LOGGER
+        //ERROR RETREIVING LOGS CHECK INSIDE
+        (0, handleErrors_1.handleErrors)("retreiveLogsfunction", err, "../src/index.ts : 166");
     }
 }
 async function initializeServer() {
@@ -164,7 +175,7 @@ app.listen(PORT, async () => {
     dbPardal_json_1.default.serverId = (0, lodash_1.toInteger)(Math.random() * 10001);
     console.log(dbPardal_json_1.default.serverId);
     console.log(`my server Id is  ${dbPardal_json_1.default.serverId}`);
-    logger_1.logger.info("-------------------------------------------Server started---------------------------------------------");
+    logger_1.logger.warn("-------------------------------------------Server started---------------------------------------------");
     console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
     await initializeServer();
 });

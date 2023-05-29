@@ -12,6 +12,7 @@ import subServerRouter from "../routes/subServerRoutes";
 import { replicateFromLogs } from "../Modules/recuperateActions";
 import logs from "../src/logs";
 import TurnOnRoutes from "../routes/TurnOnRoutes";
+import { handleErrors } from "../Modules/handleErrors";
 
 dotenv.config();
 
@@ -47,7 +48,8 @@ async function reach() {
 		}
 	} catch (err) {
 		console.log("Server is not reachable");
-    //POBLEM WHILE SEEING IF ITS REACHABLE IGNORE
+		//POBLEM WHILE SEEING IF ITS REACHABLE IGNORE
+		handleErrors("reach", err,"../src/index.ts : 52");
 	}
 }
 
@@ -59,17 +61,15 @@ async function callSubServer(element: subServer) {
 		subServerOn.push(element);
 	} catch (err) {
 		console.log("Server " + element.serverAdress + " is not reachable");
-    //ERROR CALLING SUB SERVERS
-
+		//ERROR CALLING SUB SERVERS
+		handleErrors("callSubServer", err, "../src/index.ts : 65");
 	}
 }
 
 async function communicateWithSubServers() {
 	if (!db.isProxy) {
 		const promises = mySubServers
-			.filter(
-				(element) => element.serverAdress.search(PORT.toString()) < 0
-			)
+			.filter((element) => element.serverAdress.search(PORT.toString()) < 0)
 			.map(callSubServer);
 
 		await Promise.all(promises);
@@ -85,7 +85,8 @@ async function electLeader() {
 			console.log("Server " + PORT + " is the leader");
 		} catch (err) {
 			console.log("Server " + PORT + " is not the leader");
-      //PROBLEM ANNOUNCING THE LEADER
+			//PROBLEM ANNOUNCING THE LEADER
+			handleErrors("electLeader", err, "../src/index.ts : 89");
 		}
 	} else if (hasCommunicated && !db.isProxy) {
 		const promises = subServerOn.map(async (element) => {
@@ -106,16 +107,14 @@ async function electLeader() {
 					return;
 				} else if (res.data.becomeLeader) {
 					try {
-						await axios.post(
-							"http://localhost:3000/api/init/1b02d8d2476",
-							{
-								server: `http://localhost:${PORT}/`,
-							}
-						);
+						await axios.post("http://localhost:3000/api/init/1b02d8d2476", {
+							server: `http://localhost:${PORT}/`,
+						});
 						console.log("Server " + PORT + " is the leader");
 					} catch (err) {
 						console.log("Server " + PORT + " is not the leader");
-            //PROBLEM ANNOUCING THE LEADER
+						//PROBLEM ANNOUCING THE LEADER
+						handleErrors("electLeader", err, "../src/index.ts : 117");
 					}
 				}
 
@@ -129,15 +128,16 @@ async function electLeader() {
 					s.serverAdress.includes(PORT.toString())
 				);
 				/*
-        This is the server that has the smaller id and because of that it has received a comm so when talking to 
-        other servers it wont make any deviations
-        */
+        		This is the server that has the smaller id and because of that it has received a comm so when talking to 
+        		other servers it wont make any deviations
+        		*/
 				if (myServer != null) {
 					myServer.response = true;
 				}
 			} catch (err) {
 				console.log("Server " + PORT + " is not the leader");
-        //PROBLEM ANNOUNCING THE LEADER
+				//PROBLEM ANNOUNCING THE LEADER
+				handleErrors("electLeader", err, "../src/index.ts : 140");
 			}
 		});
 
@@ -149,21 +149,21 @@ async function retreiveLogs() {
 	mySubServers.forEach(async (element) => {
 		try {
 			if (element.serverAdress.search(PORT.toString()) < 0) {
-				const log = await axios.get(
-					`${element.serverAdress}/logs/read`
-				);
+				const log = await axios.get(`${element.serverAdress}/logs/read`);
 				logs.push(log.data);
 			}
 		} catch (err) {
 			console.log(err);
 			//ERROR RETREIVING LOGS
+			handleErrors("retreiveLogsAxios", err, "../src/index.ts : 158");
 		}
 	});
 	try {
 		await replicateFromLogs();
 	} catch (err) {
 		console.log(err);
-    //ERROR RETREIVING LOGS CHECK INSIDE
+		//ERROR RETREIVING LOGS CHECK INSIDE
+		handleErrors("retreiveLogsfunction", err, "../src/index.ts : 166");
 	}
 }
 

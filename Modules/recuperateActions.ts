@@ -1,7 +1,7 @@
 import dbKernel from "../config/module";
-import { logger } from "../config/logger";
 import logs from "../src/logs";
 import { logStruct } from "../models/loggerMessageModel";
+import { handleErrors } from "../Modules/handleErrors";
 
 const PORT = process.env.PORT || 8080;
 
@@ -44,8 +44,7 @@ const replicateFromLogs = async () => {
 				//Verifica qual dos elementos tem a data mais antiga
 				if (
 					oldestElement == null ||
-					currentElement.logStructure.TimeStamp <
-						oldestElement.timeStamp
+					currentElement.logStructure.TimeStamp < oldestElement.timeStamp
 				) {
 					oldestElement = {
 						timeStamp: currentElement.logStructure.TimeStamp,
@@ -65,6 +64,8 @@ const replicateFromLogs = async () => {
 				} catch (err) {
 					console.log(err);
 					//ERROR PERFORMING AN ACTION LOG THE NAME OF THE ACTION
+					handleErrors("actions", err, "../Modules/recuperateActions.ts : 67");
+
 					continue;
 				}
 				//incrementa o index daquele log em especifico
@@ -83,8 +84,9 @@ const replicateFromLogs = async () => {
 			}
 		}
 	} catch (error) {
-		console.log(error)
+		console.log(error);
 		//ERROR RETREIVING THE LOGS INNER PROBLEM
+		handleErrors("replicateFromLogs", error, "../Modules/recuperateActions.ts : 89");
 	}
 };
 const actions = async (action: string, object: logStruct) => {
@@ -97,6 +99,7 @@ const actions = async (action: string, object: logStruct) => {
 			} catch (err) {
 				console.log(err);
 				//ERROR CREATING INSIDE THE RETRIVE
+				handleErrors("write", err, "../Modules/recuperateActions.ts : 102" , fileName);
 			}
 			break;
 		case "update":
@@ -105,6 +108,7 @@ const actions = async (action: string, object: logStruct) => {
 			} catch (err) {
 				console.log(err);
 				//ERROR UPDATING INSIDE THE RETREIVE
+				handleErrors("update", err, "../Modules/recuperateActions.ts : 111" , fileName);
 			}
 			break;
 		case "delete":
@@ -113,6 +117,7 @@ const actions = async (action: string, object: logStruct) => {
 			} catch (err) {
 				console.log(err);
 				//ERROR DELETING INSIDE THE RETREIVE
+				handleErrors("delete", err, "../Modules/recuperateActions.ts : 120" , fileName);
 			}
 			break;
 	}
