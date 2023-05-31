@@ -32,20 +32,19 @@ if (!db.isProxy) {
 	app.use("/file", fileRoutes);
 	app.use("/election", subServerRouter);
 	app.use("/logs", TurnOnRoutes);
-	
-	app.get("/check,", async (req:any,res:any)=>{
-		try{
-			console.log("reached")
-			  const port = process.env.PORT || 8080;
-			  const myServer = mySubServers.find((s) =>
-				  s.serverAdress.includes(port.toString())
-			  );
-			res.status(200).send(myServer?.isLeader);
-		  }catch(err){
-			console.log("error")
-		  }
-	})
 
+	app.get("/check", async (req: any, res: any) => {
+		try {
+			console.log("reached");
+			const port = process.env.PORT || 8080;
+			const myServer = mySubServers.find((s) =>
+				s.serverAdress.includes(port.toString())
+			);
+			res.status(200).send(myServer?.isLeader);
+		} catch (err) {
+			console.log("error");
+		}
+	});
 
 	//Call the gossip protocol
 } else {
@@ -64,7 +63,7 @@ async function reach() {
 	} catch (err) {
 		console.log("Server is not reachable");
 		//POBLEM WHILE SEEING IF ITS REACHABLE IGNORE
-		handleErrors("reach", err,"../src/index.ts : 52");
+		handleErrors("reach", err, "../src/index.ts : 52");
 	}
 }
 
@@ -84,7 +83,9 @@ async function callSubServer(element: subServer) {
 async function communicateWithSubServers() {
 	if (!db.isProxy) {
 		const promises = mySubServers
-			.filter((element) => element.serverAdress.search(PORT.toString()) < 0)
+			.filter(
+				(element) => element.serverAdress.search(PORT.toString()) < 0
+			)
 			.map(callSubServer);
 
 		await Promise.all(promises);
@@ -92,6 +93,7 @@ async function communicateWithSubServers() {
 }
 
 async function electLeader() {
+	console.log(subServerOn)
 	if (!hasCommunicated && !db.isProxy) {
 		try {
 			await axios.post("http://localhost:3000/api/init/1b02d8d2476", {
@@ -113,30 +115,48 @@ async function electLeader() {
 						server: element.serverAdress,
 					}
 				);
-				if ((res.status = 204)) {
+				if (res.status == 204) {
 					console.log(
 						"Server " +
 							PORT +
 							" is not the leader because the other has already talked"
 					);
 					return;
-				} else if (res.data.becomeLeader) {
+				} else if (res.data.becomeLeader && res.status == 200) {
 					try {
-						await axios.post("http://localhost:3000/api/init/1b02d8d2476", {
-							server: `http://localhost:${PORT}/`,
-						});
+						// Find my server
+						const server = mySubServers.find((s) =>
+							s.serverAdress.includes(PORT.toString())
+						);
+						if (server != null) {
+							server.isLeader = true;
+						}
+
+						await axios.post(
+							"http://localhost:3000/api/init/1b02d8d2476",
+							{
+								server: `http://localhost:${PORT}/`,
+							}
+						);
 						console.log("Server " + PORT + " is the leader");
 					} catch (err) {
 						console.log("Server " + PORT + " is not the leader");
 						//PROBLEM ANNOUCING THE LEADER
-						handleErrors("electLeader", err, "../src/index.ts : 117");
+						handleErrors(
+							"electLeader",
+							err,
+							"../src/index.ts : 117"
+						);
 					}
-				}
+				} else if (!res.data.becomeLeader && res.status == 200) {
+					console.log("Server " + PORT + " is not the leader");
 
-				mySubServers.forEach((server) => {
-					server.isLeader =
-						server.serverAdress === res.data.myServer.serverAdress;
-				});
+					mySubServers.forEach((server) => {
+						if (server.serverAdress.search(PORT.toString()) >= 0) {
+							server.response = true;
+						}
+					});
+				}
 
 				// Find my server
 				const myServer = mySubServers.find((s) =>
@@ -164,7 +184,9 @@ async function retreiveLogs() {
 	mySubServers.forEach(async (element) => {
 		try {
 			if (element.serverAdress.search(PORT.toString()) < 0) {
-				const log = await axios.get(`${element.serverAdress}/logs/read`);
+				const log = await axios.get(
+					`${element.serverAdress}/logs/read`
+				);
 				logs.push(log.data);
 			}
 		} catch (err) {
@@ -183,9 +205,9 @@ async function retreiveLogs() {
 }
 
 async function initializeServer() {
-	if(db.isProxy){
+	if (db.isProxy) {
 		await reach();
-		return;	
+		return;
 	}
 	await reach();
 	console.log("log1");
@@ -193,7 +215,7 @@ async function initializeServer() {
 	console.log("log2");
 	await electLeader();
 	console.log("log3");
-	await retreiveLogs();
+	//await retreiveLogs();
 	console.log("log4");
 }
 

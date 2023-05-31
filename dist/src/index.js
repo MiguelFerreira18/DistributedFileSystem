@@ -183,7 +183,7 @@ async function initializeServer() {
     console.log("log2");
     await electLeader();
     console.log("log3");
-    await retreiveLogs();
+    //await retreiveLogs();
     console.log("log4");
 }
 app.listen(PORT, async () => {

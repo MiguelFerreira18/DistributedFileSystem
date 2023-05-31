@@ -16,35 +16,54 @@ const axios_1 = __importDefault(require("axios"));
  */
 const receiveId = async (req, res) => {
     try {
+        console.log("1");
         const port = process.env.PORT || 8080;
+        console.log("2");
         const { serverId } = req.params;
-        const { server } = req.body.server;
+        console.log("3");
+        const { server } = req.body;
+        console.log("4");
         // Check if the serverId received is bigger than mine
         if (parseInt(serverId) > dbPardal_json_1.default.serverId) {
+            console.log("5");
             // Find my server
             const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
             //if it has already communicated and is smaller
-            if (!myServer?.response) {
+            if (myServer?.response) {
+                console.log("6");
                 res.status(204).send("this node is smaller and already talked to someone bigger");
                 return;
             }
+            console.log("7");
+            console.log(subGroup_1.mySubServers.length);
             subGroup_1.mySubServers.forEach((element) => {
+                console.log("7.1");
+                console.log(element);
+                console.log(server);
+                console.log(element.serverAdress);
+                console.log(element.serverAdress.search(server.serverAdress));
                 if (element.serverAdress.search(server.serverAdress) >= 0) {
+                    console.log("7.2");
                     element.isLeader = true;
                 }
                 else if (element.serverAdress.search(port.toString()) >= 0) {
+                    console.log("7.3");
                     element.response = true;
                 }
+                console.log("7.4");
                 element.isLeader = false;
             });
+            console.log("8");
             // Send that the other server is the leader by having a bigger id
             res.status(200).send({
                 message: "ServerId received",
                 myServer: myServer,
                 becomeLeader: true,
             });
+            console.log("9");
         }
         else {
+            console.log("20");
             // Find my server
             const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
             // if the serverId received is smaller than mine and i have communicated

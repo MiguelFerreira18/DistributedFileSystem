@@ -7,17 +7,17 @@ interface subServer {
 let mySubServers: subServer[] = [];
 
 mySubServers.push({
+  serverAdress: "http://localhost:3500/",
+  response: false,
+  isLeader: false,
+});
+mySubServers.push({
   serverAdress: "http://localhost:3501/",
   response: false,
   isLeader: false,
 });
 mySubServers.push({
   serverAdress: "http://localhost:3502/",
-  response: false,
-  isLeader: false,
-});
-mySubServers.push({
-  serverAdress: "http://localhost:3503/",
   response: false,
   isLeader: false,
 });

@@ -7,7 +7,16 @@ import { handleErrors } from "../Modules/handleErrors";
 const init = async (req: Request, res: Response) => {
   try {
     const groupHash = req.params.groupHash;
-    await dbKernel.init(groupHash, req.body.server);
+    await dbKernel.init(groupHash, req.body.server).then((isGroup) => {
+      
+			if (isGroup) {
+				console.log("Group is initialized");
+				res.send("Group is initialized");
+			} else {
+				console.log("Group is not initialized");
+				res.send("Group is not initialized");
+			}
+		});
   } catch (error) {
     res.status(404).send("Error");
     //ERROR INITIALIZING
