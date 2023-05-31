@@ -47,7 +47,7 @@ const readFile = async (req, res) => {
     const filePath = (0, path_1.join)(folderPath, fileName);
     try {
         const data = await module_1.default.read(fileName);
-        (0, handleSucess_1.handleSuccess)(READ_OPERATION, fileName, data);
+        (0, handleSucess_1.handleSuccess)(READ_OPERATION, fileName);
         res.send(data);
     }
     catch (err) {
@@ -59,15 +59,18 @@ const readFile = async (req, res) => {
 const writeFile = async (req, res) => {
     const fileName = req.params.fileName;
     const filePath = (0, path_1.join)(folderPath, fileName);
-    const data = JSON.stringify(req.body);
+    const jsonStructure = {
+        fileName,
+        messageBody: req.body.messageBody,
+    };
     // Find my server
     const myServer = await findMyServer();
     if (myServer?.isLeader)
-        await module_1.default.gossip(fileName, data, WRITE_OPERATION);
-    const md5 = createDigest(fileName);
+        await module_1.default.gossip(fileName, WRITE_OPERATION, jsonStructure);
+    const md5 = await createDigest(fileName);
     try {
-        await module_1.default.create(md5, data);
-        (0, handleSucess_1.handleSuccess)(WRITE_OPERATION, fileName, data);
+        await module_1.default.create(md5, jsonStructure);
+        (0, handleSucess_1.handleSuccess)(WRITE_OPERATION, fileName, jsonStructure);
         res.send("File created successfully");
     }
     catch (err) {
@@ -79,14 +82,17 @@ const writeFile = async (req, res) => {
 const updateFile = async (req, res) => {
     const fileName = await createDigest(req.params.fileName);
     const filePath = (0, path_1.join)(folderPath, fileName);
-    const data = JSON.stringify(req.body);
+    const jsonStructure = {
+        fileName,
+        messageBody: req.body.messageBody,
+    };
     try {
         // Find my server
         const myServer = await findMyServer();
         if (myServer?.isLeader)
-            await module_1.default.gossip(fileName, data, UPDATE_OPERATION);
-        await module_1.default.update(fileName, data);
-        (0, handleSucess_1.handleSuccess)(UPDATE_OPERATION, fileName, data);
+            await module_1.default.gossip(fileName, UPDATE_OPERATION, jsonStructure);
+        await module_1.default.update(fileName, jsonStructure);
+        (0, handleSucess_1.handleSuccess)(UPDATE_OPERATION, fileName, jsonStructure);
         res.send("File updated successfully");
     }
     catch (err) {
@@ -102,7 +108,7 @@ const deleteFile = async (req, res) => {
         // Find my server
         const myServer = await findMyServer();
         if (myServer?.isLeader)
-            await module_1.default.gossip(fileName, "", DELETE_OPERATION);
+            await module_1.default.gossip(fileName, DELETE_OPERATION);
         await module_1.default.delete(fileName);
         (0, handleSucess_1.handleSuccess)(DELETE_OPERATION, filePath);
         res.send("File deleted successfully");

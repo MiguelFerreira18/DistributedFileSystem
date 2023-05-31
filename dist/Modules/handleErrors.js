@@ -16,6 +16,9 @@ const handleErrors = async (errorName, err, errorLocation, filePath) => {
         case "delete":
             logger_1.logger.error("Error deleting file " + err + " from " + filePath);
             break;
+        case "init":
+            logger_1.logger.error("Error initializing" + err + " from " + filePath);
+            break;
         case "reach":
             logger_1.logger.error(`Error in line ${errorLocation}: Problem reaching the server`);
             break;

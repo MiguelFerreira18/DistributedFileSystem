@@ -32,6 +32,21 @@ if (!db.isProxy) {
 	app.use("/file", fileRoutes);
 	app.use("/election", subServerRouter);
 	app.use("/logs", TurnOnRoutes);
+	
+	app.get("/check,", async (req:any,res:any)=>{
+		try{
+			console.log("reached")
+			  const port = process.env.PORT || 8080;
+			  const myServer = mySubServers.find((s) =>
+				  s.serverAdress.includes(port.toString())
+			  );
+			res.status(200).send(myServer?.isLeader);
+		  }catch(err){
+			console.log("error")
+		  }
+	})
+
+
 	//Call the gossip protocol
 } else {
 	app.use("/api", proxyRoutes);
@@ -168,6 +183,10 @@ async function retreiveLogs() {
 }
 
 async function initializeServer() {
+	if(db.isProxy){
+		await reach();
+		return;	
+	}
 	await reach();
 	console.log("log1");
 	await communicateWithSubServers();

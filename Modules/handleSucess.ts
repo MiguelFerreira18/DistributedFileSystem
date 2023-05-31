@@ -1,10 +1,11 @@
 import { logger } from "../config/logger";
 import { logStruct } from "../models/loggerMessageModel";
+import Message from "../models/FileSchema";
 
 const handleSuccess = async (
 	successName: string,
 	fileName: string,
-	data?: string
+	data?: Message
 ) => {
 	const timeStamp = new Date().toISOString();
 	const dataObject = data ? { FileName: fileName, Data: data } : undefined;

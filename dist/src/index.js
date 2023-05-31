@@ -32,6 +32,17 @@ if (!dbPardal_json_1.default.isProxy) {
     app.use("/file", fileRoutes_1.default);
     app.use("/election", subServerRoutes_1.default);
     app.use("/logs", TurnOnRoutes_1.default);
+    app.get("/check,", async (req, res) => {
+        try {
+            console.log("reached");
+            const port = process.env.PORT || 8080;
+            const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
+            res.status(200).send(myServer?.isLeader);
+        }
+        catch (err) {
+            console.log("error");
+        }
+    });
     //Call the gossip protocol
 }
 else {
@@ -162,6 +173,10 @@ async function retreiveLogs() {
     }
 }
 async function initializeServer() {
+    if (dbPardal_json_1.default.isProxy) {
+        await reach();
+        return;
+    }
     await reach();
     console.log("log1");
     await communicateWithSubServers();

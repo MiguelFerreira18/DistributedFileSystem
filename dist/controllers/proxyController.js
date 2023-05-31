@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const module_1 = __importDefault(require("../config/module"));
 const chooseServer_1 = require("../Modules/chooseServer");
 const groups_1 = require("../src/groups");
+const handleErrors_1 = require("../Modules/handleErrors");
 const init = async (req, res) => {
     try {
         const groupHash = req.params.groupHash;
@@ -14,6 +15,7 @@ const init = async (req, res) => {
     catch (error) {
         res.status(404).send("Error");
         //ERROR INITIALIZING
+        (0, handleErrors_1.handleErrors)("init", error);
     }
 };
 const getServers = async (req, res) => {

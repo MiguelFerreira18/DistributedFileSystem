@@ -40,7 +40,7 @@ const replicateFromLogs = async () => {
                     };
                 }
             }
-            //faz a ação que está escrita na log structure
+            //faz a import { logger } from "../config/logger";ação que está escrita na log structure
             if (oldestElement != null) {
                 //efetua a ação descrita no log
                 const action = oldestElement.timstampStructure.logStructure.Action;
@@ -57,6 +57,13 @@ const replicateFromLogs = async () => {
                 //incrementa o index daquele log em especifico
                 const index = oldestElement.timstampStructure.listIndex;
                 indexes[index]++;
+            }
+            //Se o elemento for nulo, faz se a ação do primeiro e aumenta-se todos os index em 1
+            if (oldestElement == null) {
+                for (let i = 0; i < indexes.length; i++) {
+                    indexes[i]++;
+                }
+                actions(logs_1.default[0].Action, logs_1.default[0].DataObject);
             }
             //check if all the indexes arrived at their maximum position break the while loop
             const booleanIndexes = Array(logs_1.default.length).fill(false);

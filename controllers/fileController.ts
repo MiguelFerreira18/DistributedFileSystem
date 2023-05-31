@@ -6,11 +6,12 @@ import crypto from "crypto";
 import { mySubServers, subServer } from "../src/subGroup";
 import { handleSuccess } from "../Modules/handleSucess";
 import { handleErrors } from "../Modules/handleErrors";
+import Message from "../models/FileSchema";
 
 const folderPath = join(conf.home, conf.dbDir);
 
 const WRITE_OPERATION = "write";
-const READ_OPERATION = "read"
+const READ_OPERATION = "read";
 const UPDATE_OPERATION = "update";
 const DELETE_OPERATION = "delete";
 const SEND_OPERATION = "send";
@@ -46,7 +47,8 @@ const readFile = async (req: any, res: any) => {
 	const filePath = join(folderPath, fileName);
 	try {
 		const data: string = await dbKernel.read(fileName);
-		handleSuccess(READ_OPERATION, fileName, data);
+
+		handleSuccess(READ_OPERATION, fileName);
 		res.send(data);
 	} catch (err) {
 		console.log(err);
@@ -58,17 +60,21 @@ const readFile = async (req: any, res: any) => {
 const writeFile = async (req: any, res: any) => {
 	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
-	const data: string = JSON.stringify(req.body);
+	const jsonStructure: Message = {
+		fileName,
+		messageBody: req.body.messageBody,
+	};
 
 	// Find my server
 	const myServer = await findMyServer();
-	if (myServer?.isLeader)
-		await dbKernel.gossip(fileName, data, WRITE_OPERATION);
 
-	const md5 = createDigest(fileName);
+	if (myServer?.isLeader)
+		await dbKernel.gossip(fileName, WRITE_OPERATION, jsonStructure);
+
+	const md5 = await createDigest(fileName);
 	try {
-		await dbKernel.create(md5, data);
-		handleSuccess(WRITE_OPERATION, fileName, data);
+		await dbKernel.create(md5, jsonStructure);
+		handleSuccess(WRITE_OPERATION, fileName, jsonStructure);
 		res.send("File created successfully");
 	} catch (err) {
 		console.log(err);
@@ -80,16 +86,20 @@ const writeFile = async (req: any, res: any) => {
 const updateFile = async (req: any, res: any) => {
 	const fileName = await createDigest(req.params.fileName);
 	const filePath = join(folderPath, fileName);
-	const data: string = JSON.stringify(req.body);
+
+	const jsonStructure: Message = {
+		fileName,
+		messageBody: req.body.messageBody,
+	};
 
 	try {
 		// Find my server
 		const myServer = await findMyServer();
 		if (myServer?.isLeader)
-			await dbKernel.gossip(fileName, data, UPDATE_OPERATION);
+			await dbKernel.gossip(fileName, UPDATE_OPERATION, jsonStructure);
 
-		await dbKernel.update(fileName, data);
-		handleSuccess(UPDATE_OPERATION, fileName, data);
+		await dbKernel.update(fileName, jsonStructure);
+		handleSuccess(UPDATE_OPERATION, fileName, jsonStructure);
 		res.send("File updated successfully");
 	} catch (err) {
 		console.log(err);
@@ -105,7 +115,7 @@ const deleteFile = async (req: any, res: any) => {
 		// Find my server
 		const myServer = await findMyServer();
 		if (myServer?.isLeader)
-			await dbKernel.gossip(fileName, "", DELETE_OPERATION);
+			await dbKernel.gossip(fileName, DELETE_OPERATION);
 		await dbKernel.delete(fileName);
 		handleSuccess(DELETE_OPERATION, filePath);
 		res.send("File deleted successfully");
@@ -135,8 +145,6 @@ const groupServerStatus = async (req: any, res: any) => {
 		res.status(500).send("Error getting group server status");
 	}
 };
-
-
 
 const createDigest = async (fileName: string) => {
 	return crypto.createHash("md5").update(fileName).digest("hex");

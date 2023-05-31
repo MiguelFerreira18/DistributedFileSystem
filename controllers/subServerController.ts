@@ -14,77 +14,89 @@ import axios from "axios";
  * @param res Response to be sent to that server
  */
 const receiveId = async (req: any, res: Response) => {
-  try {
-    const port = process.env.PORT || 8080;
-    const { serverId } = req.params;
-    const { server } = req.data.server;
+	try {
+		const port = process.env.PORT || 8080;
+		const { serverId } = req.params;
+		const { server } = req.body.server;
 
-    // Check if the serverId received is bigger than mine
-    if (parseInt(serverId) > db.serverId) {
-      // Find my server
-      const myServer = mySubServers.find((s) =>
-        s.serverAdress.includes(port.toString())
-      );
-      //if it has already communicated and is smaller
-      if (!myServer?.response) {
-        res
-          .status(204)
-          .send("this node is smaller and already talked to someone bigger");
-        return;
-      }
+		// Check if the serverId received is bigger than mine
+		if (parseInt(serverId) > db.serverId) {
+			// Find my server
+			const myServer = mySubServers.find((s) =>
+				s.serverAdress.includes(port.toString())
+			);
+			//if it has already communicated and is smaller
+			if (!myServer?.response) {
+				res.status(204).send(
+					"this node is smaller and already talked to someone bigger"
+				);
+				return;
+			}
 
-      mySubServers.forEach((element) => {
-        if (element.serverAdress.search(server.serverAdress) >= 0) {
-          element.isLeader = true;
-        } else if (element.serverAdress.search(port.toString()) >= 0) {
-          element.response = true;
-        }
-        element.isLeader = false;
-      });
+			mySubServers.forEach((element) => {
+				if (element.serverAdress.search(server.serverAdress) >= 0) {
+					element.isLeader = true;
+				} else if (element.serverAdress.search(port.toString()) >= 0) {
+					element.response = true;
+				}
+				element.isLeader = false;
+			});
 
-      // Send that the other server is the leader by having a bigger id
-      res.status(200).send({
-        message: "ServerId received",
-        myServer: myServer,
-        becomeLeader: true,
-      });
-    } else {
-      // Find my server
-      const myServer = mySubServers.find((s) =>
-        s.serverAdress.includes(port.toString())
-      );
-      // if the serverId received is smaller than mine and i have communicated
-      if (myServer?.response) {
-        res.status(200).send({
-          message: "ServerId received",
-          myServer: myServer,
-          becomeLeader: false,
-        });
-        return;
-      }
+			// Send that the other server is the leader by having a bigger id
+			res.status(200).send({
+				message: "ServerId received",
+				myServer: myServer,
+				becomeLeader: true,
+			});
+		} else {
+			// Find my server
+			const myServer = mySubServers.find((s) =>
+				s.serverAdress.includes(port.toString())
+			);
+			// if the serverId received is smaller than mine and i have communicated
+			if (myServer?.response) {
+				res.status(200).send({
+					message: "ServerId received",
+					myServer: myServer,
+					becomeLeader: false,
+				});
+				return;
+			}
 
-      // If the serverId received is smaller than mine, I'm the leader
-      mySubServers.forEach((element) => {
-        if (element.serverAdress.search(port.toString()) < 0) {
-          element.isLeader = false;
-        }
-        element.isLeader = true;
-      });
+			// If the serverId received is smaller than mine, I'm the leader
+			mySubServers.forEach((element) => {
+				if (element.serverAdress.search(port.toString()) < 0) {
+					element.isLeader = false;
+				}
+				element.isLeader = true;
+			});
 
-      // Send that the other server is not the leader by having a smaller id
-      res.status(200).send({
-        message: "ServerId received",
-        myServer: myServer,
-        becomeLeader: false,
-      });
-      // Stablish the leader in the proxy
-      axios.post("http://localhost:3000/api/init/1b02d8d2476", {
-        server: `http://localhost:${port}/`,
-      });
-    }
-  } catch (err) {
-    res.status(500).send("Error receiving id");
-    //ERROR RECEIVING THE ID OF OTHER SERVER.
-  }
+			// Send that the other server is not the leader by having a smaller id
+			res.status(200).send({
+				message: "ServerId received",
+				myServer: myServer,
+				becomeLeader: false,
+			});
+			// Stablish the leader in the proxy
+			axios.post("http://localhost:3000/api/init/1b02d8d2476", {
+				server: `http://localhost:${port}/`,
+			});
+		}
+	} catch (err) {
+		res.status(500).send("Error receiving id");
+		//ERROR RECEIVING THE ID OF OTHER SERVER.
+	}
 };
-export default { receiveId };
+
+//CheckLeaderStatus
+
+const CheckLeaderStatus = async (req: any, res: any) => {
+  console.log("reached")
+	const port = process.env.PORT || 8080;
+	const myServer = mySubServers.find((s) =>
+		s.serverAdress.includes(port.toString())
+	);
+  res.status(200).send(myServer?.isLeader);
+};
+
+export default { receiveId,CheckLeaderStatus };

@@ -64,7 +64,7 @@ dbKernel = {
         }
         return false;
     },
-    gossip: async function (fileName, body, functionality) {
+    gossip: async function (fileName, functionality, body) {
         subGroup_1.mySubServers.forEach((element) => {
             if (!element.isLeader) {
                 const url = `http://${element.serverAdress}/receive/${fileName}`;
@@ -75,19 +75,19 @@ dbKernel = {
             }
         });
     },
-    create: async function (fileName, data) {
+    create: async function (fileName, messageBody) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await (0, fs_1.appendFileSync)(filePath, data, "utf-8");
+        await (0, fs_1.appendFileSync)(filePath, JSON.stringify(messageBody), "utf-8");
     },
-    update: async function (fileName, data) {
+    update: async function (fileName, messageBody) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
-        await (0, fs_1.writeFileSync)(filePath, data, "utf-8");
+        await (0, fs_1.writeFileSync)(filePath, JSON.stringify(messageBody), "utf-8");
     },
     read: async function (fileName) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
         const data = await (0, fs_1.readFileSync)(filePath, "utf-8");
         const jsonData = JSON.parse(data);
-        return jsonData;
+        return jsonData.messageBody;
     },
     delete: async function (fileName) {
         const filePath = (0, path_2.join)(folderPath, fileName + ".json");
@@ -99,13 +99,16 @@ dbKernel = {
     receiveFile: async function (req, res) {
         const FUNCTIONALITY = req.data.functionality;
         const fileName = req.params.fileName;
-        const body = req.data.body;
+        const message = {
+            fileName,
+            messageBody: req.data.body
+        };
         switch (FUNCTIONALITY) {
             case WRITE_OPERATION:
-                await this.create(fileName, body);
+                await this.create(fileName, message);
                 break;
             case UPDATE_OPERATION:
-                await this.update(fileName, body);
+                await this.update(fileName, message);
                 break;
             case READ_OPERATION:
                 await this.read(fileName);

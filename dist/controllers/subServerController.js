@@ -18,16 +18,14 @@ const receiveId = async (req, res) => {
     try {
         const port = process.env.PORT || 8080;
         const { serverId } = req.params;
-        const { server } = req.data.server;
+        const { server } = req.body.server;
         // Check if the serverId received is bigger than mine
         if (parseInt(serverId) > dbPardal_json_1.default.serverId) {
             // Find my server
             const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
             //if it has already communicated and is smaller
             if (!myServer?.response) {
-                res
-                    .status(204)
-                    .send("this node is smaller and already talked to someone bigger");
+                res.status(204).send("this node is smaller and already talked to someone bigger");
                 return;
             }
             subGroup_1.mySubServers.forEach((element) => {
@@ -82,4 +80,11 @@ const receiveId = async (req, res) => {
         //ERROR RECEIVING THE ID OF OTHER SERVER.
     }
 };
-exports.default = { receiveId };
+//CheckLeaderStatus
+const CheckLeaderStatus = async (req, res) => {
+    console.log("reached");
+    const port = process.env.PORT || 8080;
+    const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
+    res.status(200).send(myServer?.isLeader);
+};
+exports.default = { receiveId, CheckLeaderStatus };

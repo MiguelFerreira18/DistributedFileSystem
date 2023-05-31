@@ -12,6 +12,7 @@ import proxy from "express-http-proxy";
 import axios from "axios";
 import { mySubServers, subServer } from "../src/subGroup";
 import { Console } from "console";
+import Message from "../models/FileSchema";
 
 let dbKernel: DbKernel;
 
@@ -30,11 +31,11 @@ interface DbKernel {
 	init: (groupHash: string, server: string) => Promise<boolean>;
 	gossip: (
 		fileName: string,
-		data: string,
-		functionality: string
+		functionality: string,
+		body?: Message
 	) => Promise<void>;
-	create: (fileName: any, data: any) => Promise<void>;
-	update: (fileName: any, data: any) => Promise<void>;
+	create: (fileName: any, data: Message) => Promise<void>;
+	update: (fileName: any, data: Message) => Promise<void>;
 	read: (fileName: any) => Promise<string>;
 	delete: (params: any) => Promise<void>;
 	groupServerStatus: () => Promise<void>;
@@ -65,8 +66,8 @@ dbKernel = {
 	},
 	gossip: async function (
 		fileName: string,
-		body: string,
-		functionality: string
+		functionality: string,
+		body?: Message
 	) {
 		mySubServers.forEach((element) => {
 			if (!element.isLeader) {
@@ -78,19 +79,22 @@ dbKernel = {
 			}
 		});
 	},
-	create: async function (fileName: any, data: any) {
+	create: async function (fileName: any, messageBody: Message) {
 		const filePath = join(folderPath, fileName + ".json");
-		await appendFileSync(filePath, data, "utf-8");
+	
+		await appendFileSync(filePath, JSON.stringify(messageBody), "utf-8");
 	},
-	update: async function (fileName: any, data: any) {
+	update: async function (fileName: any, messageBody: Message) {
 		const filePath = join(folderPath, fileName + ".json");
-		await writeFileSync(filePath, data, "utf-8");
+
+
+		await writeFileSync(filePath, JSON.stringify(messageBody), "utf-8");
 	},
 	read: async function (fileName: any) {
 		const filePath = join(folderPath, fileName + ".json");
 		const data: string = await readFileSync(filePath, "utf-8");
-		const jsonData = JSON.parse(data);
-		return jsonData;
+		const jsonData:Message = JSON.parse(data);
+		return jsonData.messageBody;
 	},
 	delete: async function (fileName: any) {
 		const filePath = join(folderPath, fileName + ".json");
@@ -102,14 +106,17 @@ dbKernel = {
 	receiveFile: async function (req: any, res: any) {
 		const FUNCTIONALITY = req.data.functionality;
 		const fileName = req.params.fileName;
-		const body = req.data.body;
+		const message:Message = {
+			fileName,
+			messageBody: req.data.body
+		};
 
 		switch (FUNCTIONALITY) {
 			case WRITE_OPERATION:
-				await this.create(fileName, body);
+				await this.create(fileName, message);
 				break;
 			case UPDATE_OPERATION:
-				await this.update(fileName, body);
+				await this.update(fileName, message);
 				break;
 			case READ_OPERATION:
 				await this.read(fileName);
