@@ -2,6 +2,7 @@ import { logger } from "../config/logger";
 import { Request, Response } from "express";
 import { mySubServers, subServer } from "../src/subGroup";
 import db from "../config/dbPardal.json";
+import env from "../models/config";
 
 import axios from "axios";
 
@@ -16,7 +17,7 @@ import axios from "axios";
 const receiveId = async (req: any, res: Response) => {
 	try {
 		console.log("1")
-		const port = process.env.PORT || 8080;
+		const port = env.PORT;
 		console.log("2")
 		const { serverId } = req.params;
 		console.log("3")
@@ -106,7 +107,7 @@ const receiveId = async (req: any, res: Response) => {
 
 const CheckLeaderStatus = async (req: any, res: any) => {
   console.log("reached")
-	const port = process.env.PORT || 8080;
+	const port = env.PORT;
 	const myServer = mySubServers.find((s) =>
 		s.serverAdress.includes(port.toString())
 	);

@@ -1,4 +1,3 @@
-import { logger } from "../config/logger";
 import { join } from "path";
 import conf from "../config/dbPardal.json";
 import dbKernel from "../config/module";
@@ -7,6 +6,7 @@ import { mySubServers, subServer } from "../src/subGroup";
 import { handleSuccess } from "../Modules/handleSucess";
 import { handleErrors } from "../Modules/handleErrors";
 import Message from "../models/FileSchema";
+import env from "../models/config";
 
 const folderPath = join(conf.home, conf.dbDir);
 
@@ -15,7 +15,7 @@ const READ_OPERATION = "read";
 const UPDATE_OPERATION = "update";
 const DELETE_OPERATION = "delete";
 const SEND_OPERATION = "send";
-const PORT = process.env.PORT || 8080;
+const PORT = env.PORT;
 
 const getPage = (req: any, res: any) => {
 	res.send("GET request to the homepage");
@@ -67,6 +67,7 @@ const writeFile = async (req: any, res: any) => {
 
 	// Find my server
 	const myServer = await findMyServer();
+	console.log(`${myServer?.isLeader}`);
 
 	if (myServer?.isLeader)
 		await dbKernel.gossip(fileName, WRITE_OPERATION, jsonStructure);
@@ -84,21 +85,22 @@ const writeFile = async (req: any, res: any) => {
 };
 
 const updateFile = async (req: any, res: any) => {
-	const fileName = await createDigest(req.params.fileName);
+	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
 
 	const jsonStructure: Message = {
-		fileName,
+		fileName: req.params.fileName,
 		messageBody: req.body.messageBody,
 	};
 
+	const myServer = await findMyServer();
+	if (myServer?.isLeader)
+		await dbKernel.gossip(fileName, UPDATE_OPERATION, jsonStructure);
+
+	const md5 = await createDigest(fileName);
 	try {
 		// Find my server
-		const myServer = await findMyServer();
-		if (myServer?.isLeader)
-			await dbKernel.gossip(fileName, UPDATE_OPERATION, jsonStructure);
-
-		await dbKernel.update(fileName, jsonStructure);
+		await dbKernel.update(md5, jsonStructure);
 		handleSuccess(UPDATE_OPERATION, fileName, jsonStructure);
 		res.send("File updated successfully");
 	} catch (err) {
@@ -109,13 +111,16 @@ const updateFile = async (req: any, res: any) => {
 };
 
 const deleteFile = async (req: any, res: any) => {
-	const fileName = await createDigest(req.params.fileName);
+	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
+
+	// Find my server
+	const myServer = await findMyServer();
+	if (myServer?.isLeader)
+		await dbKernel.gossip(req.params.fileName, DELETE_OPERATION);
+
+	const md5 = await createDigest(fileName)
 	try {
-		// Find my server
-		const myServer = await findMyServer();
-		if (myServer?.isLeader)
-			await dbKernel.gossip(fileName, DELETE_OPERATION);
 		await dbKernel.delete(fileName);
 		handleSuccess(DELETE_OPERATION, filePath);
 		res.send("File deleted successfully");
@@ -128,9 +133,9 @@ const deleteFile = async (req: any, res: any) => {
 const receive = async (req: any, res: any) => {
 	try {
 		await dbKernel.receiveFile(req, res);
-		handleSuccess("receive", req.data.body, req.params.fileName);
+		handleSuccess("receive", req.body.body, req.params.fileName);
 	} catch (error) {
-		console.log(`Error in the action ${req.data.functionality} `);
+		console.log(`Error in the action ${req.bod.functionality} `);
 		//HANDLE ERROR ON RECEIVING A FILE
 		res.status(400).send("ERROR in receiving file");
 	}
@@ -150,7 +155,15 @@ const createDigest = async (fileName: string) => {
 	return crypto.createHash("md5").update(fileName).digest("hex");
 };
 const findMyServer = async () => {
-	return mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+	console.log("searching");
+	console.log();
+	const server = await mySubServers.find((s) => {
+		console.log(s);
+		console.log(s.serverAdress.includes(PORT.toString()));
+		return s.serverAdress.includes(PORT.toString());
+	});
+	console.log(`23 ${server?.isLeader}`);
+	return server;
 };
 
 export default {

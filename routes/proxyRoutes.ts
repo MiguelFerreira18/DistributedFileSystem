@@ -11,6 +11,6 @@ router.get("/getServers", proxyController.getServers);
 router.get("/file/read/:id", proxyController.proxyFileRead);
 router.post("/file/write/:id",proxyController.proxyFileWrite);
 router.post("/file/update/:id",proxyController.proxyFileUpdate);
-router.delete("/file/delete/:id", proxyController.proxyFileDelete);
+router.post("/file/delete/:id", proxyController.proxyFileDelete);
 
 export default router;

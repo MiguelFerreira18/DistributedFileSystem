@@ -13,6 +13,8 @@ import axios from "axios";
 import { mySubServers, subServer } from "../src/subGroup";
 import { Console } from "console";
 import Message from "../models/FileSchema";
+import env from "../models/config";
+import crypto from "crypto";
 
 let dbKernel: DbKernel;
 
@@ -69,13 +71,20 @@ dbKernel = {
 		functionality: string,
 		body?: Message
 	) {
-		mySubServers.forEach((element) => {
-			if (!element.isLeader) {
-				const url = `http://${element.serverAdress}/receive/${fileName}`;
-				axios.post(url, {
+		console.log("Check")
+		console.log(body)
+
+
+
+		mySubServers.forEach(async (element) => {
+			console.log(element)
+			if (element.serverAdress.search(env.PORT)<0) {
+				const url = `${element.serverAdress}file/receive/${fileName}`;
+				await axios.post(url, {
 					body,
 					functionality,
 				});
+				console.log("end")
 			}
 		});
 	},
@@ -104,25 +113,27 @@ dbKernel = {
 		await console.log(groupMap);
 	},
 	receiveFile: async function (req: any, res: any) {
-		const FUNCTIONALITY = req.data.functionality;
+		console.log(req.data)
+		const FUNCTIONALITY = req.body.functionality;
 		const fileName = req.params.fileName;
 		const message:Message = {
 			fileName,
-			messageBody: req.data.body
+			messageBody: req.body.body
 		};
-
+		const md5 = await createDigest(fileName);
 		switch (FUNCTIONALITY) {
 			case WRITE_OPERATION:
-				await this.create(fileName, message);
+				
+				await this.create(md5, message);
 				break;
 			case UPDATE_OPERATION:
-				await this.update(fileName, message);
+				await this.update(md5, message);
 				break;
 			case READ_OPERATION:
-				await this.read(fileName);
+				await this.read(md5);
 				break;
 			case DELETE_OPERATION:
-				await this.delete(fileName);
+				await this.delete(md5);
 				break;
 			default:
 				console.log("ERROR");
@@ -133,5 +144,7 @@ dbKernel = {
 		res.status(200).send("ok");
 	},
 };
-
+const createDigest = async (fileName: string) => {
+	return crypto.createHash("md5").update(fileName).digest("hex");
+};
 export default dbKernel;

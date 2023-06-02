@@ -1,5 +1,4 @@
 import express, { Express } from "express";
-import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import { logger } from "../config/logger";
 import fileRoutes from "../routes/fileRoutes";
@@ -13,13 +12,14 @@ import { replicateFromLogs } from "../Modules/recuperateActions";
 import logs from "../src/logs";
 import TurnOnRoutes from "../routes/TurnOnRoutes";
 import { handleErrors } from "../Modules/handleErrors";
+import env from "../models/config";
 
-dotenv.config();
+
 
 const app: Express = express();
 
 app.use(bodyParser.json());
-const PORT = process.env.PORT || 8080;
+const PORT = env.PORT;
 let hasCommunicated = false;
 let subServerOn: subServer[] = [];
 
@@ -36,7 +36,7 @@ if (!db.isProxy) {
 	app.get("/check", async (req: any, res: any) => {
 		try {
 			console.log("reached");
-			const port = process.env.PORT || 8080;
+			const port =env.PORT;
 			const myServer = mySubServers.find((s) =>
 				s.serverAdress.includes(port.toString())
 			);

@@ -18,7 +18,7 @@ const handleSuccess = async (
 				Action: "read",
 				DataObject: dataObject,
 			};
-			logger.warn(readLog);
+			logger.warn(JSON.stringify(readLog));
 			break;
 		case "write":
 			const writeLog:logStruct = {
@@ -27,7 +27,7 @@ const handleSuccess = async (
 				Action: "write",
 				DataObject: dataObject,
 			};
-			logger.info(writeLog);
+			logger.info(JSON.stringify(writeLog));
 			break;
 		case "update":
 			const updateLog:logStruct = {
@@ -36,7 +36,7 @@ const handleSuccess = async (
 				Action: "update",
 				DataObject: dataObject,
 			};
-			logger.info(updateLog);
+			logger.info(JSON.stringify(updateLog));
 			break;
 		case "delete":
 			const deleteLog:logStruct = {
@@ -45,7 +45,7 @@ const handleSuccess = async (
 				Action: "delete",
 				DataObject: dataObject,
 			};
-			logger.info(deleteLog);
+			logger.info(JSON.stringify(deleteLog));
 			break;
 		case "send":
 			const sendLog:logStruct= {
@@ -54,7 +54,7 @@ const handleSuccess = async (
 				Action: "send",
 				DataObject: dataObject,
 			};
-			logger.info(sendLog);
+			logger.info(JSON.stringify(sendLog));
 			break;
 		case "init":
 			const initializingLog:logStruct = {
@@ -63,7 +63,7 @@ const handleSuccess = async (
 				Action: "init",
 				DataObject: undefined,
 			};
-			logger.warn(initializingLog);
+			logger.warn(JSON.stringify(initializingLog));
 			break;
 		case "receive":
 			const receiveLog:logStruct = {
@@ -72,7 +72,7 @@ const handleSuccess = async (
 				Action: "receive",
 				DataObject: dataObject,
 			};
-			logger.warn(receiveLog);
+			logger.warn(JSON.stringify(receiveLog));
 			break;
 		default:
 			logger.info("Success from " + fileName);
