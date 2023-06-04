@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const logger_1 = require("../config/logger");
 const fileRoutes_1 = __importDefault(require("../routes/fileRoutes"));
@@ -14,14 +13,13 @@ const lodash_1 = require("lodash");
 const proxyRoutes_1 = __importDefault(require("../routes/proxyRoutes"));
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
 const subServerRoutes_1 = __importDefault(require("../routes/subServerRoutes"));
-const recuperateActions_1 = require("../Modules/recuperateActions");
 const logs_1 = __importDefault(require("../src/logs"));
 const TurnOnRoutes_1 = __importDefault(require("../routes/TurnOnRoutes"));
 const handleErrors_1 = require("../Modules/handleErrors");
-dotenv_1.default.config();
+const config_1 = __importDefault(require("../models/config"));
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
-const PORT = process.env.PORT || 8080;
+const PORT = config_1.default.PORT;
 let hasCommunicated = false;
 let subServerOn = [];
 app.get("/", (req, res) => {
@@ -32,10 +30,10 @@ if (!dbPardal_json_1.default.isProxy) {
     app.use("/file", fileRoutes_1.default);
     app.use("/election", subServerRoutes_1.default);
     app.use("/logs", TurnOnRoutes_1.default);
-    app.get("/check,", async (req, res) => {
+    app.get("/check", async (req, res) => {
         try {
             console.log("reached");
-            const port = process.env.PORT || 8080;
+            const port = config_1.default.PORT;
             const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
             res.status(200).send(myServer?.isLeader);
         }
@@ -87,6 +85,7 @@ async function communicateWithSubServers() {
     }
 }
 async function electLeader() {
+    console.log(subServerOn);
     if (!hasCommunicated && !dbPardal_json_1.default.isProxy) {
         try {
             await axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
@@ -107,14 +106,19 @@ async function electLeader() {
                 const res = await axios_1.default.post(`${element.serverAdress}election/${dbPardal_json_1.default.serverId}`, {
                     server: element.serverAdress,
                 });
-                if ((res.status = 204)) {
+                if (res.status == 204) {
                     console.log("Server " +
                         PORT +
                         " is not the leader because the other has already talked");
                     return;
                 }
-                else if (res.data.becomeLeader) {
+                else if (res.data.becomeLeader && res.status == 200) {
                     try {
+                        // Find my server
+                        const server = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
+                        if (server != null) {
+                            server.isLeader = true;
+                        }
                         await axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
                             server: `http://localhost:${PORT}/`,
                         });
@@ -126,10 +130,14 @@ async function electLeader() {
                         (0, handleErrors_1.handleErrors)("electLeader", err, "../src/index.ts : 117");
                     }
                 }
-                subGroup_1.mySubServers.forEach((server) => {
-                    server.isLeader =
-                        server.serverAdress === res.data.myServer.serverAdress;
-                });
+                else if (!res.data.becomeLeader && res.status == 200) {
+                    console.log("Server " + PORT + " is not the leader");
+                    subGroup_1.mySubServers.forEach((server) => {
+                        if (server.serverAdress.search(PORT.toString()) >= 0) {
+                            server.response = true;
+                        }
+                    });
+                }
                 // Find my server
                 const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(PORT.toString()));
                 /*
@@ -150,27 +158,30 @@ async function electLeader() {
     }
 }
 async function retreiveLogs() {
-    subGroup_1.mySubServers.forEach(async (element) => {
+    for (const element of subServerOn) {
         try {
             if (element.serverAdress.search(PORT.toString()) < 0) {
-                const log = await axios_1.default.get(`${element.serverAdress}/logs/read`);
+                const log = await axios_1.default.get(`${element.serverAdress}logs/read`);
                 logs_1.default.push(log.data);
+                console.log(log.data);
             }
         }
         catch (err) {
             console.log(err);
-            //ERROR RETREIVING LOGS
+            //ERROR RETRIEVING LOGS
             (0, handleErrors_1.handleErrors)("retreiveLogsAxios", err, "../src/index.ts : 158");
         }
-    });
+    }
+    console.log("end of of for each");
     try {
-        await (0, recuperateActions_1.replicateFromLogs)();
+        //await replicateFromLogs();
     }
     catch (err) {
         console.log(err);
-        //ERROR RETREIVING LOGS CHECK INSIDE
+        //ERROR RETRIEVING LOGS CHECK INSIDE
         (0, handleErrors_1.handleErrors)("retreiveLogsfunction", err, "../src/index.ts : 166");
     }
+    console.log("end of method");
 }
 async function initializeServer() {
     if (dbPardal_json_1.default.isProxy) {
@@ -181,7 +192,7 @@ async function initializeServer() {
     console.log("log1");
     await communicateWithSubServers();
     console.log("log2");
-    await electLeader();
+    //await electLeader(); //!TROCAR ISTO DEPOIS, TIRAR O COMENTÁRIO
     console.log("log3");
     //await retreiveLogs();
     console.log("log4");

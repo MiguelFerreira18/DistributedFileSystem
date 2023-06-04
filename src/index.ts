@@ -181,27 +181,28 @@ async function electLeader() {
 }
 
 async function retreiveLogs() {
-	mySubServers.forEach(async (element) => {
+	for (const element of subServerOn) {
 		try {
-			if (element.serverAdress.search(PORT.toString()) < 0) {
-				const log = await axios.get(
-					`${element.serverAdress}/logs/read`
-				);
-				logs.push(log.data);
-			}
+		  if (element.serverAdress.search(PORT.toString()) < 0) {
+			const log = await axios.get(`${element.serverAdress}logs/read`);
+			logs.push(log.data);
+			console.log(log.data);
+		  }
 		} catch (err) {
-			console.log(err);
-			//ERROR RETREIVING LOGS
-			handleErrors("retreiveLogsAxios", err, "../src/index.ts : 158");
+		  console.log(err);
+		  //ERROR RETRIEVING LOGS
+		  handleErrors("retreiveLogsAxios", err, "../src/index.ts : 158");
 		}
-	});
-	try {
-		await replicateFromLogs();
-	} catch (err) {
+	  }
+	  console.log("end of of for each");
+	  try {
+		//await replicateFromLogs();
+	  } catch (err) {
 		console.log(err);
-		//ERROR RETREIVING LOGS CHECK INSIDE
+		//ERROR RETRIEVING LOGS CHECK INSIDE
 		handleErrors("retreiveLogsfunction", err, "../src/index.ts : 166");
-	}
+	  }
+	  console.log("end of method");
 }
 
 async function initializeServer() {
@@ -213,7 +214,7 @@ async function initializeServer() {
 	console.log("log1");
 	await communicateWithSubServers();
 	console.log("log2");
-	await electLeader();
+	//await electLeader(); //!TROCAR ISTO DEPOIS, TIRAR O COMENTÁRIO
 	console.log("log3");
 	//await retreiveLogs();
 	console.log("log4");

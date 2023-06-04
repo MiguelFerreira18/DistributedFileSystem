@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const subGroup_1 = require("../src/subGroup");
 const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
-const axios_1 = __importDefault(require("axios"));
+const config_1 = __importDefault(require("../models/config"));
 /**
  * Receives the serverId of another server making the request and his server object, if the id of that server is bigger
  * than the response will send to that server that he is the lader of the group, if it's not bigger,
@@ -17,7 +17,7 @@ const axios_1 = __importDefault(require("axios"));
 const receiveId = async (req, res) => {
     try {
         console.log("1");
-        const port = process.env.PORT || 8080;
+        const port = config_1.default.PORT;
         console.log("2");
         const { serverId } = req.params;
         console.log("3");
@@ -46,7 +46,7 @@ const receiveId = async (req, res) => {
                     console.log("7.2");
                     element.isLeader = true;
                 }
-                else if (element.serverAdress.search(port.toString()) >= 0) {
+                if (element.serverAdress.search(port.toString()) >= 0) {
                     console.log("7.3");
                     element.response = true;
                 }
@@ -88,10 +88,6 @@ const receiveId = async (req, res) => {
                 myServer: myServer,
                 becomeLeader: false,
             });
-            // Stablish the leader in the proxy
-            axios_1.default.post("http://localhost:3000/api/init/1b02d8d2476", {
-                server: `http://localhost:${port}/`,
-            });
         }
     }
     catch (err) {
@@ -102,7 +98,7 @@ const receiveId = async (req, res) => {
 //CheckLeaderStatus
 const CheckLeaderStatus = async (req, res) => {
     console.log("reached");
-    const port = process.env.PORT || 8080;
+    const port = config_1.default.PORT;
     const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
     res.status(200).send(myServer?.isLeader);
 };

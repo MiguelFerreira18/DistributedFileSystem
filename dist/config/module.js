@@ -34,6 +34,8 @@ const groups_1 = require("../src/groups");
 const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
 const axios_1 = __importDefault(require("axios"));
 const subGroup_1 = require("../src/subGroup");
+const config_1 = __importDefault(require("../models/config"));
+const crypto_1 = __importDefault(require("crypto"));
 let dbKernel;
 let home;
 let dbDir;
@@ -65,13 +67,17 @@ dbKernel = {
         return false;
     },
     gossip: async function (fileName, functionality, body) {
-        subGroup_1.mySubServers.forEach((element) => {
-            if (!element.isLeader) {
-                const url = `http://${element.serverAdress}/receive/${fileName}`;
-                axios_1.default.post(url, {
+        console.log("Check");
+        console.log(body);
+        subGroup_1.mySubServers.forEach(async (element) => {
+            console.log(element);
+            if (element.serverAdress.search(config_1.default.PORT) < 0) {
+                const url = `${element.serverAdress}file/receive/${fileName}`;
+                await axios_1.default.post(url, {
                     body,
                     functionality,
                 });
+                console.log("end");
             }
         });
     },
@@ -97,24 +103,26 @@ dbKernel = {
         await console.log(groups_1.groupMap);
     },
     receiveFile: async function (req, res) {
-        const FUNCTIONALITY = req.data.functionality;
+        console.log(req.data);
+        const FUNCTIONALITY = req.body.functionality;
         const fileName = req.params.fileName;
         const message = {
             fileName,
-            messageBody: req.data.body
+            messageBody: req.body.body
         };
+        const md5 = await createDigest(fileName);
         switch (FUNCTIONALITY) {
             case WRITE_OPERATION:
-                await this.create(fileName, message);
+                await this.create(md5, message);
                 break;
             case UPDATE_OPERATION:
-                await this.update(fileName, message);
+                await this.update(md5, message);
                 break;
             case READ_OPERATION:
-                await this.read(fileName);
+                await this.read(md5);
                 break;
             case DELETE_OPERATION:
-                await this.delete(fileName);
+                await this.delete(md5);
                 break;
             default:
                 console.log("ERROR");
@@ -123,5 +131,8 @@ dbKernel = {
         }
         res.status(200).send("ok");
     },
+};
+const createDigest = async (fileName) => {
+    return crypto_1.default.createHash("md5").update(fileName).digest("hex");
 };
 exports.default = dbKernel;

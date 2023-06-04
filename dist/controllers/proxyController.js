@@ -10,7 +10,16 @@ const handleErrors_1 = require("../Modules/handleErrors");
 const init = async (req, res) => {
     try {
         const groupHash = req.params.groupHash;
-        await module_1.default.init(groupHash, req.body.server);
+        await module_1.default.init(groupHash, req.body.server).then((isGroup) => {
+            if (isGroup) {
+                console.log("Group is initialized");
+                res.send("Group is initialized");
+            }
+            else {
+                console.log("Group is not initialized");
+                res.send("Group is not initialized");
+            }
+        });
     }
     catch (error) {
         res.status(404).send("Error");

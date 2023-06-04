@@ -13,7 +13,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "read",
                 DataObject: dataObject,
             };
-            logger_1.logger.warn(readLog);
+            logger_1.logger.warn(JSON.stringify(readLog));
             break;
         case "write":
             const writeLog = {
@@ -22,7 +22,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "write",
                 DataObject: dataObject,
             };
-            logger_1.logger.info(writeLog);
+            logger_1.logger.info(JSON.stringify(writeLog));
             break;
         case "update":
             const updateLog = {
@@ -31,7 +31,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "update",
                 DataObject: dataObject,
             };
-            logger_1.logger.info(updateLog);
+            logger_1.logger.info(JSON.stringify(updateLog));
             break;
         case "delete":
             const deleteLog = {
@@ -40,7 +40,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "delete",
                 DataObject: dataObject,
             };
-            logger_1.logger.info(deleteLog);
+            logger_1.logger.info(JSON.stringify(deleteLog));
             break;
         case "send":
             const sendLog = {
@@ -49,7 +49,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "send",
                 DataObject: dataObject,
             };
-            logger_1.logger.info(sendLog);
+            logger_1.logger.info(JSON.stringify(sendLog));
             break;
         case "init":
             const initializingLog = {
@@ -58,7 +58,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "init",
                 DataObject: undefined,
             };
-            logger_1.logger.warn(initializingLog);
+            logger_1.logger.warn(JSON.stringify(initializingLog));
             break;
         case "receive":
             const receiveLog = {
@@ -67,7 +67,7 @@ const handleSuccess = async (successName, fileName, data) => {
                 Action: "receive",
                 DataObject: dataObject,
             };
-            logger_1.logger.warn(receiveLog);
+            logger_1.logger.warn(JSON.stringify(receiveLog));
             break;
         default:
             logger_1.logger.info("Success from " + fileName);
