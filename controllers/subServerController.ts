@@ -17,7 +17,7 @@ import axios from "axios";
 const receiveId = async (req: any, res: Response) => {
 	try {
 		console.log("1")
-		const port = env.PORT;
+		const port = db.PORT;
 		console.log("2")
 		const { serverId } = req.params;
 		console.log("3")
@@ -43,11 +43,10 @@ const receiveId = async (req: any, res: Response) => {
 			console.log(mySubServers.length)
 			mySubServers.forEach((element) => {
 				console.log("7.1")
-				console.log(element)
 				console.log(server)
 				console.log(element.serverAdress)
-				console.log(element.serverAdress.search(server.serverAdress))
-				if (element.serverAdress.search(server.serverAdress) >= 0) {
+				console.log(element.serverAdress.search(server))
+				if (element.serverAdress.search(server) >= 0) {
 					console.log("7.2")
 					element.isLeader = true;
 				}
@@ -103,15 +102,24 @@ const receiveId = async (req: any, res: Response) => {
 	}
 };
 
+const sendServer = async(req:any,res:any)=>{
+	const port = db.PORT;
+	for (const element of mySubServers){
+		if(element.serverAdress.search(port.toString())>=0){
+			res.send(element)
+		}
+	}
+}
+
 //CheckLeaderStatus
 
 const CheckLeaderStatus = async (req: any, res: any) => {
   console.log("reached")
-	const port = env.PORT;
+	const port = db.PORT;
 	const myServer = mySubServers.find((s) =>
 		s.serverAdress.includes(port.toString())
 	);
   res.status(200).send(myServer?.isLeader);
 };
 
-export default { receiveId,CheckLeaderStatus };
+export default { receiveId,CheckLeaderStatus,sendServer };

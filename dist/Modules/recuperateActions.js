@@ -7,7 +7,7 @@ exports.replicateFromLogs = void 0;
 const module_1 = __importDefault(require("../config/module"));
 const logs_1 = __importDefault(require("../src/logs"));
 const handleErrors_1 = require("../Modules/handleErrors");
-const PORT = process.env.PORT || 8080;
+const crypto_1 = __importDefault(require("crypto"));
 const replicateFromLogs = async () => {
     try {
         const indexes = Array(logs_1.default.length).fill(0); //Cria um array the indexes
@@ -17,6 +17,8 @@ const replicateFromLogs = async () => {
             for (let i = 0; i < logs_1.default.length; i++) {
                 const logsInnerList = logs_1.default[i]; //vai buscar o a lista de logs na posição i da lista grande
                 const index = indexes[i]; //vais buscar o index que pertence à lista
+                console.log(logsInnerList.length);
+                console.log(logsInnerList[i]);
                 if (index < logsInnerList.length) {
                     //acede ao elemento
                     const element = logsInnerList[index];
@@ -33,7 +35,8 @@ const replicateFromLogs = async () => {
                 const currentElement = timeStamps[i];
                 //Verifica qual dos elementos tem a data mais antiga
                 if (oldestElement == null ||
-                    currentElement.logStructure.TimeStamp < oldestElement.timeStamp) {
+                    currentElement.logStructure.TimeStamp <
+                        oldestElement.timeStamp) {
                     oldestElement = {
                         timeStamp: currentElement.logStructure.TimeStamp,
                         timstampStructure: currentElement,
@@ -42,6 +45,7 @@ const replicateFromLogs = async () => {
             }
             //faz a import { logger } from "../config/logger";ação que está escrita na log structure
             if (oldestElement != null) {
+                console.log(oldestElement);
                 //efetua a ação descrita no log
                 const action = oldestElement.timstampStructure.logStructure.Action;
                 const structure = oldestElement.timstampStructure.logStructure;
@@ -68,11 +72,15 @@ const replicateFromLogs = async () => {
             //check if all the indexes arrived at their maximum position break the while loop
             const booleanIndexes = Array(logs_1.default.length).fill(false);
             for (let i = 0; i < booleanIndexes.length; i++) {
-                if (indexes[i] >= logs_1.default.length) {
+                if (indexes[i] >= logs_1.default[i].length) {
                     booleanIndexes[i] = true;
                 }
             }
+            for (const c of booleanIndexes) {
+                console.log(c);
+            }
             if (booleanIndexes.every(Boolean)) {
+                console.log("all?");
                 break;
             }
         }
@@ -85,12 +93,14 @@ const replicateFromLogs = async () => {
 };
 exports.replicateFromLogs = replicateFromLogs;
 const actions = async (action, object) => {
-    const fileName = object.DataObject.fileName;
+    const fileName = object.DataObject.FileName;
     const data = object.DataObject.Data;
+    const md5 = await createDigest(fileName);
     switch (action) {
         case "write":
             try {
-                await module_1.default.create(fileName, data);
+                await module_1.default.create(md5, data);
+                console.log("reached write");
             }
             catch (err) {
                 console.log(err);
@@ -100,7 +110,8 @@ const actions = async (action, object) => {
             break;
         case "update":
             try {
-                await module_1.default.update(fileName, data);
+                await module_1.default.update(md5, data);
+                console.log("reached update");
             }
             catch (err) {
                 console.log(err);
@@ -110,7 +121,8 @@ const actions = async (action, object) => {
             break;
         case "delete":
             try {
-                await module_1.default.delete(fileName);
+                await module_1.default.delete(md5);
+                console.log("reached Delete");
             }
             catch (err) {
                 console.log(err);
@@ -119,4 +131,7 @@ const actions = async (action, object) => {
             }
             break;
     }
+};
+const createDigest = async (fileName) => {
+    return crypto_1.default.createHash("md5").update(fileName).digest("hex");
 };

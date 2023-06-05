@@ -14,9 +14,8 @@ const readLog = async (req, res) => {
     const combinedFile = (0, fs_1.readFileSync)(logsFilePath, "utf-8");
     let logLineData = [];
     combinedFile.split(/\r?\n/).forEach((line) => {
-        if (line === "") {
+        if (line === "")
             return;
-        }
         line.trim();
         let lineSplit = [];
         lineSplit = line.split("|");

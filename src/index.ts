@@ -12,19 +12,19 @@ import { replicateFromLogs } from "../Modules/recuperateActions";
 import logs from "../src/logs";
 import TurnOnRoutes from "../routes/TurnOnRoutes";
 import { handleErrors } from "../Modules/handleErrors";
-import env from "../models/config";
+
 
 
 
 const app: Express = express();
 
 app.use(bodyParser.json());
-const PORT = env.PORT;
+const PORT = db.PORT;
 let hasCommunicated = false;
 let subServerOn: subServer[] = [];
 
 app.get("/", (req, res) => {
-	res.send("FileSystem");
+	res.send(true);
 });
 
 //Routes for files manipulation
@@ -36,11 +36,11 @@ if (!db.isProxy) {
 	app.get("/check", async (req: any, res: any) => {
 		try {
 			console.log("reached");
-			const port =env.PORT;
-			const myServer = mySubServers.find((s) =>
-				s.serverAdress.includes(port.toString())
-			);
-			res.status(200).send(myServer?.isLeader);
+			const port =db.PORT;
+			for(const server of subServerOn)
+			{
+				console.log(server)
+			}
 		} catch (err) {
 			console.log("error");
 		}
@@ -72,7 +72,7 @@ async function callSubServer(element: subServer) {
 		await axios.get(element.serverAdress);
 		console.log("Server " + element.serverAdress + " is reachable");
 		hasCommunicated = true;
-		subServerOn.push(element);
+		element.isOn=true
 	} catch (err) {
 		console.log("Server " + element.serverAdress + " is not reachable");
 		//ERROR CALLING SUB SERVERS
@@ -124,6 +124,9 @@ async function electLeader() {
 					return;
 				} else if (res.data.becomeLeader && res.status == 200) {
 					try {
+						for(const server of mySubServers){
+							server.isLeader = false;
+						}
 						// Find my server
 						const server = mySubServers.find((s) =>
 							s.serverAdress.includes(PORT.toString())
@@ -203,6 +206,21 @@ async function retreiveLogs() {
 		handleErrors("retreiveLogsfunction", err, "../src/index.ts : 166");
 	  }
 	  console.log("end of method");
+}
+async function changeServersState(){
+	for(const server of mySubServers){
+		if(server.isOn){
+			const res = await axios.post(`${server.serverAdress}election/sendServer`, {//Ask for the server and then update it
+				servers: mySubServers,
+			});
+			
+			if(res.status == 200){
+				const receivedServer = res.data
+				server.isOn = true
+				server.isLeader= receivedServer.isLeader
+			}
+		}
+	}
 }
 
 async function initializeServer() {

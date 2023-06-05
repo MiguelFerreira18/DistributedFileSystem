@@ -23,7 +23,7 @@ const PORT = config_1.default.PORT;
 let hasCommunicated = false;
 let subServerOn = [];
 app.get("/", (req, res) => {
-    res.send("FileSystem");
+    res.send(true);
 });
 //Routes for files manipulation
 if (!dbPardal_json_1.default.isProxy) {
@@ -34,8 +34,9 @@ if (!dbPardal_json_1.default.isProxy) {
         try {
             console.log("reached");
             const port = config_1.default.PORT;
-            const myServer = subGroup_1.mySubServers.find((s) => s.serverAdress.includes(port.toString()));
-            res.status(200).send(myServer?.isLeader);
+            for (const server of subServerOn) {
+                console.log(server);
+            }
         }
         catch (err) {
             console.log("error");
