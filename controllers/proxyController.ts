@@ -1,26 +1,16 @@
 import { Request, Response } from "express";
-import dbKernel from "../config/module";
-import { chooseNode, groupNodeReturn } from "../Modules/chooseServer";
+import dbKernel from "../Modules/module";
+import { groupNodeReturn } from "../Modules/chooseServer";
 import { groupMap, Group } from "../src/groups";
 import { handleErrors } from "../Modules/handleErrors";
 
 const init = async (req: Request, res: Response) => {
   try {
     const groupHash = req.params.groupHash;
-    await dbKernel.init(groupHash, req.body.server).then((isGroup) => {
-      
-			if (isGroup) {
-				console.log("Group is initialized");
-				res.send("Group is initialized");
-			} else {
-				console.log("Group is not initialized");
-				res.send("Group is not initialized");
-			}
-		});
+    await dbKernel.init(groupHash, req.body.server).then((isGroup) => checkIfGroup(isGroup,res) );
   } catch (error) {
     res.status(404).send("Error");
-    //ERROR INITIALIZING
-    handleErrors("init", error);
+    handleErrors("init", error);//ERROR INITIALIZING
   }
 };
 
@@ -82,6 +72,16 @@ const proxyFileDelete = async (req: Request, res: Response) => {
     res.status(400).send("No Active Servers");
   }
 };
+
+const checkIfGroup = (isGroup:boolean,res:any)=>{
+  if (isGroup) {
+    console.log("Group is initialized");
+    res.send("Group is initialized");
+  } else {
+    console.log("Group is not initialized");
+    res.send("Group is not initialized");
+  }
+}
 
 export default {
   init,

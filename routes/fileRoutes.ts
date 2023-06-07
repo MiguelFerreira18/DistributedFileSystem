@@ -6,7 +6,6 @@ const router = express.Router();
 
 
 router.get('/',fileController.getPage)
-router.post('/init/:groupHash',fileController.init)
 router.post('/receive/:fileName',fileController.receive);
 router.get('/status',fileController.groupServerStatus);
 

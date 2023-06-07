@@ -1,9 +1,8 @@
-import dbKernel from "../config/module";
+import dbKernel from "./module";
 import logs from "../src/logs";
 import { logStruct } from "../models/loggerMessageModel";
 import { handleErrors } from "../Modules/handleErrors";
 import crypto from "crypto";
-import { log } from "console";
 
 
 

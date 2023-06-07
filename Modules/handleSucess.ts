@@ -1,4 +1,4 @@
-import { logger } from "../config/logger";
+import { logger } from "./logger";
 import { logStruct } from "../models/loggerMessageModel";
 import Message from "../models/FileSchema";
 

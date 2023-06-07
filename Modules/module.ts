@@ -6,14 +6,12 @@ import fs, {
 } from "fs";
 import path from "path";
 import { join } from "path";
-import conf from "../config/dbPardal.json";
-import { groupMap, Group } from "../src/groups";
+import conf from "../dbPardal.json";
+import { groupMap} from "../src/groups";
 import proxy from "express-http-proxy";
 import axios from "axios";
-import { mySubServers, subServer } from "../src/subGroup";
-import { Console } from "console";
+import { mySubServers } from "../src/subGroup";
 import Message from "../models/FileSchema";
-import env from "../models/config";
 import crypto from "crypto";
 
 let dbKernel: DbKernel;
@@ -74,11 +72,9 @@ dbKernel = {
 		console.log("Check")
 		console.log(body)
 
-
-
 		mySubServers.forEach(async (element) => {
 			console.log(element)
-			if (element.serverAdress.search(env.PORT)<0) {
+			if (element.serverAdress.search(conf.PORT.toString())<0) {
 				const url = `${element.serverAdress}file/receive/${fileName}`;
 				await axios.post(url, {
 					body,

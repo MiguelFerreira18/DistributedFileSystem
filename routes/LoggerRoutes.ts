@@ -1,5 +1,5 @@
 import express from "express";
-import turnOnController from "../controllers/TurnOnController";
+import turnOnController from "../controllers/LoggerController";
 
 
 const router = express.Router();

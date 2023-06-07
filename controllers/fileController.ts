@@ -1,12 +1,11 @@
 import { join } from "path";
-import conf from "../config/dbPardal.json";
-import dbKernel from "../config/module";
+import conf from "../dbPardal.json";
+import dbKernel from "../Modules/module";
 import crypto from "crypto";
-import { mySubServers, subServer } from "../src/subGroup";
+import { mySubServers } from "../src/subGroup";
 import { handleSuccess } from "../Modules/handleSucess";
 import { handleErrors } from "../Modules/handleErrors";
 import Message from "../models/FileSchema";
-import env from "../models/config";
 
 const folderPath = join(conf.home, conf.dbDir);
 
@@ -14,32 +13,12 @@ const WRITE_OPERATION = "write";
 const READ_OPERATION = "read";
 const UPDATE_OPERATION = "update";
 const DELETE_OPERATION = "delete";
-const SEND_OPERATION = "send";
-const PORT = env.PORT;
+const PORT = conf.PORT;
 
 const getPage = (req: any, res: any) => {
 	res.send("GET request to the homepage");
 };
 
-const init = (req: any, res: any) => {
-	try {
-		console.log("Initializing file system");
-		console.log("Group hash: " + req.params.groupHash);
-		dbKernel.init(req.params.groupHash, req.body.server).then((isGroup) => {
-			if (isGroup) {
-				console.log("Group is initialized");
-				handleSuccess("init", "none");
-				res.send("Group is initialized");
-			} else {
-				console.log("Group is not initialized");
-				res.send("Group is not initialized");
-			}
-		});
-	} catch (err) {
-		console.log(err);
-		res.status(500).send("Error initializing file system");
-	}
-};
 
 const readFile = async (req: any, res: any) => {
 	//Apply message digest to the fileName
@@ -47,11 +26,9 @@ const readFile = async (req: any, res: any) => {
 	const filePath = join(folderPath, fileName);
 	try {
 		const data: string = await dbKernel.read(fileName);
-
 		handleSuccess(READ_OPERATION, fileName);
 		res.send(data);
 	} catch (err) {
-		console.log(err);
 		handleErrors(READ_OPERATION, err, filePath);
 		res.status(500).send("Error reading file");
 	}
@@ -67,10 +44,8 @@ const writeFile = async (req: any, res: any) => {
 
 	// Find my server
 	const myServer = await findMyServer();
-	console.log(`${myServer?.isLeader}`);
-
 	if (myServer?.isLeader)
-		await dbKernel.gossip(fileName, WRITE_OPERATION, jsonStructure);
+		await dbKernel.gossip(fileName, WRITE_OPERATION, jsonStructure); //SE FOR O LIDER MANDA PARA TODOS
 
 	const md5 = await createDigest(fileName);
 	try {
@@ -87,7 +62,6 @@ const writeFile = async (req: any, res: any) => {
 const updateFile = async (req: any, res: any) => {
 	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
-
 	const jsonStructure: Message = {
 		fileName: req.params.fileName,
 		messageBody: req.body.messageBody,
@@ -121,7 +95,7 @@ const deleteFile = async (req: any, res: any) => {
 
 	const md5 = await createDigest(fileName)
 	try {
-		await dbKernel.delete(fileName);
+		await dbKernel.delete(md5);
 		handleSuccess(DELETE_OPERATION, filePath);
 		res.send("File deleted successfully");
 	} catch (err) {
@@ -166,8 +140,9 @@ const findMyServer = async () => {
 	return server;
 };
 
+
+
 export default {
-	init,
 	getPage,
 	readFile,
 	writeFile,

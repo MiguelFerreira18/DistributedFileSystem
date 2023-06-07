@@ -1,14 +1,12 @@
 import { logStruct } from "../models/loggerMessageModel";
-import db from "../config/dbPardal.json";
+import db from "../dbPardal.json";
 import { readFileSync } from "fs";
 import path from "path";
-import { Console } from "console";
 
 const readLog = async (req: any, res: any) => {
 	//get the latest log from te /logs folder
 	console.log("Into logs");
 	const logsFilePath = path.join(db.home, "logs", "combined.log");
-	console.log(logsFilePath);
 	const combinedFile = readFileSync(logsFilePath, "utf-8");
 	let logLineData: logStruct[] = [];
 	combinedFile.split(/\r?\n/).forEach((line) => {

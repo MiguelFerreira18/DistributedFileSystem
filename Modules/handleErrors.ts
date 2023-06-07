@@ -1,4 +1,4 @@
-import { logger } from "../config/logger";
+import { logger } from "./logger";
 
 const handleErrors = async (
 	errorName: string,

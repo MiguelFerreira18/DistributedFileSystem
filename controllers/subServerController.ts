@@ -1,10 +1,7 @@
-import { logger } from "../config/logger";
-import { Request, Response } from "express";
-import { mySubServers, subServer } from "../src/subGroup";
-import db from "../config/dbPardal.json";
-import env from "../models/config";
+import { Response } from "express";
+import { mySubServers } from "../src/subGroup";
+import db from "../dbPardal.json";
 
-import axios from "axios";
 
 /**
  * Receives the serverId of another server making the request and his server object, if the id of that server is bigger
@@ -16,57 +13,63 @@ import axios from "axios";
  */
 const receiveId = async (req: any, res: Response) => {
 	try {
-		console.log("1")
+		console.log("1");
 		const port = db.PORT;
-		console.log("2")
+		console.log("2");
 		const { serverId } = req.params;
-		console.log("3")
+		console.log("3");
 		const { server } = req.body;
-		console.log("4")
+		console.log("4");
 
 		// Check if the serverId received is bigger than mine
 		if (parseInt(serverId) > db.serverId) {
-			console.log("5")
+			console.log("5");
 			// Find my server
 			const myServer = mySubServers.find((s) =>
 				s.serverAdress.includes(port.toString())
 			);
 			//if it has already communicated and is smaller
 			if (myServer?.response) {
-				console.log("6")
+				console.log("6");
+				const sv = mySubServers.find((s) =>
+					s.serverAdress.includes(server)
+				);
+				if(sv)
+					sv.isOn = true;
+
 				res.status(204).send(
 					"this node is smaller and already talked to someone bigger"
 				);
 				return;
 			}
-			console.log("7")
-			console.log(mySubServers.length)
+			console.log("7");
+			console.log(mySubServers.length);
 			mySubServers.forEach((element) => {
-				console.log("7.1")
-				console.log(server)
-				console.log(element.serverAdress)
-				console.log(element.serverAdress.search(server))
+				console.log("7.1");
+				console.log(server);
+				console.log(element.serverAdress);
+				console.log(element.serverAdress.search(server));
 				if (element.serverAdress.search(server) >= 0) {
-					console.log("7.2")
+					console.log("7.2");
 					element.isLeader = true;
 				}
 				if (element.serverAdress.search(port.toString()) >= 0) {
-					console.log("7.3")
+					console.log("7.3");
 					element.response = true;
 				}
-				console.log("7.4")
+				console.log("7.4");
 				element.isLeader = false;
 			});
-			console.log("8")
+			console.log("8");
 			// Send that the other server is the leader by having a bigger id
 			res.status(200).send({
 				message: "ServerId received",
 				myServer: myServer,
 				becomeLeader: true,
 			});
-			console.log("9")
+			console.log("9");
 		} else {
-			console.log("20")
+			console.log("20");
 			// Find my server
 			const myServer = mySubServers.find((s) =>
 				s.serverAdress.includes(port.toString())
@@ -102,24 +105,24 @@ const receiveId = async (req: any, res: Response) => {
 	}
 };
 
-const sendServer = async(req:any,res:any)=>{
+const sendServer = async (req: any, res: any) => {
 	const port = db.PORT;
-	for (const element of mySubServers){
-		if(element.serverAdress.search(port.toString())>=0){
-			res.send(element)
+	for (const element of mySubServers) {
+		if (element.serverAdress.search(port.toString()) >= 0) {
+			res.send(element);
 		}
 	}
-}
+};
 
 //CheckLeaderStatus
 
 const CheckLeaderStatus = async (req: any, res: any) => {
-  console.log("reached")
+	console.log("reached");
 	const port = db.PORT;
 	const myServer = mySubServers.find((s) =>
 		s.serverAdress.includes(port.toString())
 	);
-  res.status(200).send(myServer?.isLeader);
+	res.status(200).send(myServer?.isLeader);
 };
 
-export default { receiveId,CheckLeaderStatus,sendServer };
+export default { receiveId, CheckLeaderStatus, sendServer };
