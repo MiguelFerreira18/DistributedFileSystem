@@ -7,6 +7,7 @@ router.use('/:serverId',subServerController.receiveId);
 
 router.use('/CheckLeaderStatus',subServerController.CheckLeaderStatus);
 
-router.use('/sendServer',subServerController.sendServer)
+router.use('/receiveLeader',subServerController.receiveLeader);
+
 
 export default router;

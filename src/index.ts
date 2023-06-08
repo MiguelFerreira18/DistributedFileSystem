@@ -144,6 +144,9 @@ async function electLeader() {
 								}
 							);
 							console.log("Server " + PORT + " is the leader");
+							
+							await sendLeader();
+
 						} catch (err) {
 							console.log(
 								"Server " + PORT + " is not the leader"
@@ -166,6 +169,10 @@ async function electLeader() {
 							myServer.isOn = true;
 							myServer.response = true;
 						}
+						for(const server of mySubServers)//Limpa todos os servidores de serem liders
+							server.isLeader = false
+						//Make this element tje new leader
+						element.isLeader = true;
 					}
 				} catch (err) {
 					console.log("Server " + PORT + " is not the leader");
@@ -205,22 +212,23 @@ async function retreiveLogs() {
 	}
 	console.log("end of method");
 }
-async function changeServersState() {
-	for (const server of mySubServers) {
-		if (server.isOn) {
+async function sendLeader() {
+	const servers = mySubServers
+	.filter(
+		(element) => element.serverAdress.search(PORT.toString()) < 0 && element.isOn
+	)
+	for (const server of servers){
+		try {
 			const res = await axios.post(
-				`${server.serverAdress}election/sendServer`,
+				`${server.serverAdress}election/leaderServer`,
 				{
 					//Ask for the server and then update it
-					servers: mySubServers,
+					servers: `http://localhost:${PORT}/`,
 				}
 			);
-
-			if (res.status == 200) {
-				const receivedServer = res.data;
-				server.isOn = true;
-				server.isLeader = receivedServer.isLeader;
-			}
+			console.log(res.data);
+		} catch (error) {
+			console.log(error)
 		}
 	}
 }
@@ -234,7 +242,7 @@ async function initializeServer() {
 	console.log("log1");
 	await communicateWithSubServers();
 	console.log("log2");
-	//await electLeader(); //!TROCAR ISTO DEPOIS, TIRAR O COMENTÁRIO
+	await electLeader(); //!TROCAR ISTO DEPOIS, TIRAR O COMENTÁRIO
 	console.log("log3");
 	//await retreiveLogs();
 	console.log("log4");

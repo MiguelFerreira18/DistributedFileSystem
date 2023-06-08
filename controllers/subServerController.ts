@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { mySubServers } from "../src/subGroup";
 import db from "../dbPardal.json";
-
+import { ok } from "assert";
 
 /**
  * Receives the serverId of another server making the request and his server object, if the id of that server is bigger
@@ -34,8 +34,7 @@ const receiveId = async (req: any, res: Response) => {
 				const sv = mySubServers.find((s) =>
 					s.serverAdress.includes(server)
 				);
-				if(sv)
-					sv.isOn = true;
+				if (sv) sv.isOn = true;
 
 				res.status(204).send(
 					"this node is smaller and already talked to someone bigger"
@@ -52,13 +51,15 @@ const receiveId = async (req: any, res: Response) => {
 				if (element.serverAdress.search(server) >= 0) {
 					console.log("7.2");
 					element.isLeader = true;
+					element.isOn = true;
+				} else {
+					console.log("7.3");
+					element.isLeader = false;
 				}
 				if (element.serverAdress.search(port.toString()) >= 0) {
-					console.log("7.3");
+					console.log("7.4");
 					element.response = true;
 				}
-				console.log("7.4");
-				element.isLeader = false;
 			});
 			console.log("8");
 			// Send that the other server is the leader by having a bigger id
@@ -88,8 +89,8 @@ const receiveId = async (req: any, res: Response) => {
 			mySubServers.forEach((element) => {
 				if (element.serverAdress.search(port.toString()) < 0) {
 					element.isLeader = false;
-				}
-				element.isLeader = true;
+					element.isOn = true;
+				} else element.isLeader = true;
 			});
 
 			// Send that the other server is not the leader by having a smaller id
@@ -105,15 +106,17 @@ const receiveId = async (req: any, res: Response) => {
 	}
 };
 
-const sendServer = async (req: any, res: any) => {
-	const port = db.PORT;
-	for (const element of mySubServers) {
-		if (element.serverAdress.search(port.toString()) >= 0) {
-			res.send(element);
+const receiveLeader = async (req: any, res: any) => {
+	const { leaderServer } = req.body;
+	for (const server of mySubServers) {
+		if (server.serverAdress.search(leaderServer)) {
+			server.isLeader = true;
+		} else {
+			server.isLeader = false;
 		}
 	}
+	res.send(ok)
 };
-
 //CheckLeaderStatus
 
 const CheckLeaderStatus = async (req: any, res: any) => {
@@ -125,4 +128,4 @@ const CheckLeaderStatus = async (req: any, res: any) => {
 	res.status(200).send(myServer?.isLeader);
 };
 
-export default { receiveId, CheckLeaderStatus, sendServer };
+export default { receiveId, CheckLeaderStatus, receiveLeader };
