@@ -2,6 +2,7 @@ import { Response } from "express";
 import { mySubServers } from "../src/subGroup";
 import db from "../dbPardal.json";
 import { ok } from "assert";
+import axios from "axios";
 
 /**
  * Receives the serverId of another server making the request and his server object, if the id of that server is bigger
@@ -115,9 +116,9 @@ const receiveLeader = async (req: any, res: any) => {
 			server.isLeader = false;
 		}
 	}
-	res.send(ok)
+	res.send(ok);
 };
-//CheckLeaderStatus
+
 
 const CheckLeaderStatus = async (req: any, res: any) => {
 	console.log("reached");

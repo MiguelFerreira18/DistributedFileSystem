@@ -144,9 +144,8 @@ async function electLeader() {
 								}
 							);
 							console.log("Server " + PORT + " is the leader");
-							
-							await sendLeader();
 
+							await sendLeader();
 						} catch (err) {
 							console.log(
 								"Server " + PORT + " is not the leader"
@@ -169,8 +168,8 @@ async function electLeader() {
 							myServer.isOn = true;
 							myServer.response = true;
 						}
-						for(const server of mySubServers)//Limpa todos os servidores de serem liders
-							server.isLeader = false
+						for (const server of mySubServers) //Limpa todos os servidores de serem liders
+							server.isLeader = false;
 						//Make this element tje new leader
 						element.isLeader = true;
 					}
@@ -213,22 +212,45 @@ async function retreiveLogs() {
 	console.log("end of method");
 }
 async function sendLeader() {
-	const servers = mySubServers
-	.filter(
-		(element) => element.serverAdress.search(PORT.toString()) < 0 && element.isOn
-	)
-	for (const server of servers){
+	const servers = mySubServers.filter(
+		(element) =>
+			element.serverAdress.search(PORT.toString()) < 0 && element.isOn
+	);
+	for (const server of servers) {
 		try {
 			const res = await axios.post(
-				`${server.serverAdress}election/leaderServer`,
+				`${server.serverAdress}election/receiveLeader`,
 				{
-					//Ask for the server and then update it
+					//Send for the server and then update it
 					servers: `http://localhost:${PORT}/`,
 				}
 			);
 			console.log(res.data);
 		} catch (error) {
-			console.log(error)
+			console.log(error);
+		}
+	}
+}
+
+async function pingLeader() {
+	const server = mySubServers.find((element) => element.isLeader);
+	if (server) {
+		try {
+			const serverResponse = await axios.post(`${server?.serverAdress}`, {
+				//Send for the server and then update it
+				servers: `http://localhost:${PORT}/`,
+			});
+			console.log(serverResponse.data);
+		} catch (error) {
+			console.log(error); //Mudar para ficar melhor
+			//RESETA TUDO E FAZ A REILEIÇÃO
+			for (const server of mySubServers) {
+				server.isLeader = false;
+				server.isOn = false;
+				server.response = false;
+			}
+			db.serverId = toInteger(Math.random() * 10001);
+			await electLeader();
 		}
 	}
 }
@@ -258,6 +280,12 @@ app.listen(PORT, async () => {
 	console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
 
 	await initializeServer();
+
+	setInterval(async () => {
+		await pingLeader();
+	}, 2000);
+
+	
 });
 
 export default app;
