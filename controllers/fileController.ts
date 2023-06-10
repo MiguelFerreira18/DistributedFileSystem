@@ -20,6 +20,14 @@ const getPage = (req: any, res: any) => {
 };
 
 
+/**
+ * Asynchronously reads a file and sends its content as a response.
+ *
+ * @param {any} req - The request object.
+ * @param {any} res - The response object.
+ * @return {Promise<void>} A promise that resolves when the file is read and sent 
+ * as a response or rejects if there was an error reading the file.
+ */
 const readFile = async (req: any, res: any) => {
 	//Apply message digest to the fileName
 	const fileName = await createDigest(req.params.fileName);
@@ -34,6 +42,17 @@ const readFile = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Asynchronously writes a file with the given fileName and messageBody in the request body.
+ * If the server is a leader, it sends the file to all servers in the cluster. 
+ * Creates a digest of the file and stores it in the database. 
+ * If successful, sends a success message and returns "File created successfully".
+ * If there is an error, logs it and sends a 500 status with the message "Error writing file".
+ *
+ * @param {any} req - the request object containing the fileName and messageBody
+ * @param {any} res - the response object to send back
+ * @return {Promise<void>} a promise that resolves when the file is successfully written to disk and stored in the database
+ */
 const writeFile = async (req: any, res: any) => {
 	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
@@ -59,6 +78,15 @@ const writeFile = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Updates a file with a given name and message body, and sends a gossip message to the database 
+ * if the current server is the leader. Returns a success message upon completion or an error message
+ * if an error is encountered.
+ *
+ * @param {any} req - the request object
+ * @param {any} res - the response object
+ * @return {Promise<void>} - a Promise resolving to void
+ */
 const updateFile = async (req: any, res: any) => {
 	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
@@ -84,6 +112,16 @@ const updateFile = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Deletes a file specified in the request parameters. If the server is the leader,
+ * the operation is gossiped to the other nodes. Deletes the file from the database
+ * and responds with a success message if the operation is successful, otherwise
+ * logs the error and responds with an error message.
+ *
+ * @param {any} req - The request object containing the file name to be deleted.
+ * @param {any} res - The response object.
+ * @return {Promise<void>} - Returns a promise that resolves once the operation is completed.
+ */
 const deleteFile = async (req: any, res: any) => {
 	const fileName = req.params.fileName;
 	const filePath = join(folderPath, fileName);
@@ -104,6 +142,13 @@ const deleteFile = async (req: any, res: any) => {
 		res.status(500).send("Error deleting file");
 	}
 };
+/**
+ * Receives a file through the request and sends it to the database.
+ *
+ * @param {any} req - the request object containing the file to be received
+ * @param {any} res - the response object to be used for sending status and error messages
+ * @return {Promise<void>} - a promise that resolves when the file is received and handled successfully
+ */
 const receive = async (req: any, res: any) => {
 	try {
 		await dbKernel.receiveFile(req, res);
@@ -115,6 +160,16 @@ const receive = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Executes the 'groupServerStatus' function asynchronously. 
+ *
+ * @async
+ * @function groupServerStatus
+ * @param {any} req - The request object.
+ * @param {any} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves with no value.
+ * @throws Will throw an error if there is an issue while getting the group server status.
+ */
 const groupServerStatus = async (req: any, res: any) => {
 	try {
 		await dbKernel.groupServerStatus();
@@ -125,9 +180,20 @@ const groupServerStatus = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Computes the MD5 hash digest of the given file name string asynchronously.
+ *
+ * @param {string} fileName - The name of the file to compute the hash for.
+ * @return {Promise<string>} A promise that resolves to the hex string representation of the hash digest.
+ */
 const createDigest = async (fileName: string) => {
 	return crypto.createHash("md5").update(fileName).digest("hex");
 };
+/**
+ * Asynchronously searches for a server that includes the specified port in its address.
+ *
+ * @return {Promise<SubServer | undefined>} The server found or undefined if none was found.
+ */
 const findMyServer = async () => {
 	console.log("searching");
 	console.log();

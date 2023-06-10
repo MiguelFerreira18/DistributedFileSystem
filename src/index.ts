@@ -48,6 +48,10 @@ if (!db.isProxy) {
 }
 
 //see if server is reachable
+/**
+ * Check if server is reachable.
+ * @throws {Error} if server is not reachable.
+ */
 async function reach() {
 	try {
 		if (db.isProxy) {
@@ -62,7 +66,12 @@ async function reach() {
 		handleErrors("reach", err, "../src/index.ts : 52");
 	}
 }
-
+/**
+* Calls the given sub server and updates its status based on whether it was reached successfully or not
+* @param {Object} element - The sub server object to call
+* @param {string} element.serverAddress - The URL of the sub server
+* @param {boolean} element.isOn - The current status of the sub server
+*/
 async function callSubServer(element: subServer) {
 	try {
 		await axios.get(element.serverAdress);
@@ -77,8 +86,15 @@ async function callSubServer(element: subServer) {
 	}
 }
 
+/**
+ * Communicates with sub-servers if the current server is not a proxy.
+ * @returns {Promise<void>}
+ */
 async function communicateWithSubServers() {
+	// Check if the current server is not a proxy
 	if (!db.isProxy) {
+
+		// Call each filtered sub-server
 		const promises = mySubServers
 			.filter(
 				(element) => element.serverAdress.search(PORT.toString()) < 0
@@ -89,14 +105,23 @@ async function communicateWithSubServers() {
 	}
 }
 
+/**
+ * Elects a leader server among a group of servers.
+ * 
+ * @returns {Promise<void>}
+ */
 async function electLeader() {
 	console.log(mySubServers);
+	
+	// If the current server has not communicated yet and is not a proxy
 	if (!hasCommunicated && !db.isProxy) {
 		try {
 			await axios.post("http://localhost:3000/api/init/1b02d8d2476", {
 				server: `http://localhost:${PORT}/`,
 			});
 			console.log("Server " + PORT + " is the leader");
+
+			// Find my server and set it as the leader
 			const server = mySubServers.find((s) =>
 				s.serverAdress.includes(PORT.toString())
 			);
@@ -108,7 +133,7 @@ async function electLeader() {
 			//PROBLEM ANNOUNCING THE LEADER
 			handleErrors("electLeader", err, "../src/index.ts : 89");
 		}
-	} else if (hasCommunicated && !db.isProxy) {
+	} else if (hasCommunicated && !db.isProxy) {// If the current server has communicated and is not a proxy
 		const promises = mySubServers
 			.filter(
 				(element) => element.serverAdress.search(PORT.toString()) < 0
@@ -132,7 +157,7 @@ async function electLeader() {
 								" is not the leader because the other has already talked"
 						);
 						return;
-					} else if (res.data.becomeLeader && res.status == 200) {
+					} else if (res.data.becomeLeader && res.status == 200) {// If the response is a 200 and the server should become leader
 						try {
 							for (const server of mySubServers) {
 								server.isLeader = false;
@@ -171,7 +196,7 @@ async function electLeader() {
 						} catch (err) {
 							console.log("um deles não está on");
 						}
-					} else if (!res.data.becomeLeader && res.status == 200) {
+					} else if (!res.data.becomeLeader && res.status == 200) {//If the response is 200 and this server should not becomeLeader than it won't be the leader
 						console.log("Server " + PORT + " is not the leader");
 
 						console.log("Server " + PORT + " is not the leader");
@@ -197,7 +222,11 @@ async function electLeader() {
 		await Promise.all(promises);
 	}
 }
-
+/**
+ * Asynchronously retrieves logs from all subservers and stores them in an array.
+ *
+ * @return {void} No return value.
+ */
 async function retreiveLogs() {
 	for (const element of mySubServers) {
 		try {
@@ -225,6 +254,11 @@ async function retreiveLogs() {
 	}
 	console.log("end of method");
 }
+/**
+ * Sends the leader to all the subservers except the one running on PORT.
+ *
+ * @return {Promise<void>} A promise that resolves when all the subservers have received the leader.
+ */
 async function sendLeader() {
 	console.log("send 1");
 	const servers = mySubServers.filter(
@@ -250,6 +284,13 @@ async function sendLeader() {
 	}
 }
 
+/**
+ * Asynchronously pings the leader server and logs whether the current
+ * server is the leader or not. If the current server is not the leader, it
+ * resets all the servers and elects a new leader.
+ *
+ * @return {Promise<void>} Returns nothing.
+ */
 async function pingLeader() {
 	const server = mySubServers.find((element) => element.isLeader);
 	if (server && server.serverAdress.search(PORT.toString()) < 0) {
@@ -280,6 +321,11 @@ async function pingLeader() {
 	}
 }
 
+/**
+ * Initializes the server, reaching out to sub-servers and retrieving logs.
+ *
+ * @return {Promise<void>} A Promise that resolves when the server is fully initialized.
+ */
 async function initializeServer() {
 	if (db.isProxy) {
 		await reach();
@@ -291,7 +337,7 @@ async function initializeServer() {
 	console.log("log2");
 	await electLeader(); //!TROCAR ISTO DEPOIS, TIRAR O COMENTÁRIO
 	console.log("log3");
-	//await retreiveLogs();
+	await retreiveLogs();
 	console.log("log4");
 }
 

@@ -2,6 +2,13 @@ import { logger } from "./logger";
 import { logStruct } from "../models/loggerMessageModel";
 import Message from "../models/FileSchema";
 
+/**
+ * Asynchronously handles successful events and logs them to the console
+ *
+ * @param {string} successName - The name of the successful event
+ * @param {string} fileName - The name of the file that triggered the event
+ * @param {Message} [data] - Optional additional data to log with the event
+ */
 const handleSuccess = async (
 	successName: string,
 	fileName: string,

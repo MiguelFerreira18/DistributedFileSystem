@@ -8,10 +8,26 @@ import { handleErrors } from "../Modules/handleErrors";
 import db from "../dbPardal.json"
 
 
+/**
+ * Sets the `isOn` property of the `db` object to false.
+ *
+ * @param {any} req - The request object.
+ * @param {any} res - The response object.
+ * @return {Promise<void>} - A promise that resolves when the `isOn` property has been set to false.
+ */
 const turnOfNode = async (req: any, res: any) => {
     db.isOn = false;
 };
 
+/**
+ * Asynchronously identifies a file from the request body using its fileName field, creates a 
+ * digest of the file, reads it from the database using the digest, and sends a response with the 
+ * server URL and a boolean indicating whether the file exists in the database or not.
+ *
+ * @param {any} req - The request object containing the file name in the body.
+ * @param {any} res - The response object to send a response to.
+ * @return {Promise<void>} - Returns nothing.
+ */
 const identifyFile = async (req: any, res: any) => {
     const {fileName} = req.body
     const md5 = await createDigest(fileName);
@@ -24,32 +40,21 @@ const identifyFile = async (req: any, res: any) => {
     }
 };
 
+/**
+ * Retrieves the structure of the current system, consisting of a proxy and a list of nodes.
+ * !Não está acabado por não saber quais são as rotas!
+ * @param {any} req - the incoming request object
+ * @param {any} res - the outgoing response object
+ * @returns {Promise<void>} - returns nothing, as the result is sent through the response object
+ */
 const getStructure = async (req: any, res: any) => {
-    /*
-     {
-        proxy:
-        {
-            ip:ip da minha proxy,
-            port: porta da minha proxy
-        }
-        nodes: ['abc':
-            {
-                hosts:
-                    [
-                        {ip:'127.0.0.1',port:3000},
-                        {ip:'127.0.0.1',port:3001},
-                        {ip:'127.0.0.1',port:3002}
-                    ]
-                    master: 2
-    }
-    */
+   
     let i = 0;
     for (const server of mySubServers){
         if(server.isLeader)
            return 
         i++;
     }
-
     const cena = {
         proxy: {
             ip: '127.0.0.1',

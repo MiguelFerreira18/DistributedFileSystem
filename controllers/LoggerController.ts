@@ -3,6 +3,14 @@ import db from "../dbPardal.json";
 import { readFileSync } from "fs";
 import path from "path";
 
+/**
+ * Reads the latest log file from the /logs folder and returns an array of logStruct objects
+ * representing the info logs.
+ *
+ * @param {any} req - the request object
+ * @param {any} res - the response object
+ * @return {Promise<void>} - returns a Promise that resolves to void
+ */
 const readLog = async (req: any, res: any) => {
 	//get the latest log from te /logs folder
 	console.log("Into logs");

@@ -108,6 +108,13 @@ const receiveId = async (req: any, res: Response) => {
 	}
 };
 
+/**
+ * Sends the leader server to all the subservers.
+ *
+ * @param {any} req - The request object.
+ * @param {any} res - The response object.
+ * @return {Promise<void>} - A Promise that resolves when the function completes.
+ */
 const sendLeader = async (req: any, res: any) => {
 	try {
 		console.log(req.body);
@@ -129,6 +136,13 @@ const sendLeader = async (req: any, res: any) => {
 	}
 };
 
+/**
+ * Asynchronous function that checks the leader status of a server and sends it in response.
+ *
+ * @param {any} req - the request object
+ * @param {any} res - the response object
+ * @return {Promise<void>} - a promise that resolves when the response is sent
+ */
 const CheckLeaderStatus = async (req: any, res: any) => {
 	console.log("reached");
 	const port = db.PORT;
@@ -139,6 +153,14 @@ const CheckLeaderStatus = async (req: any, res: any) => {
 };
 
 
+/**
+ * Asynchronously switches the leader server by sending a request to all subservers
+ * except the one running on the current port. Each subserver that receives the request
+ * updates its database and sends a response back to the caller.
+ *
+ * @return {Promise<void>} - A Promise that resolves when all requests have been sent
+ * or rejects if an error occurred during any of the requests.
+ */
 async function switchLeader() {
 	console.log("send 1")
 	const servers = mySubServers.filter(

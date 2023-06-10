@@ -1,5 +1,13 @@
 import { logger } from "./logger";
 
+/**
+ * Handles errors based on their name and logs them with their respective messages.
+ *
+ * @param {string} errorName - The name of the error.
+ * @param {*} err - The error object.
+ * @param {string} [errorLocation] - The location of the error.
+ * @param {string} [filePath] - The path of the file where the error occurred.
+ */
 const handleErrors = async (
 	errorName: string,
 	err: any,

@@ -16,6 +16,11 @@ type elem = {
 	timstampStructure: timestamps;
 } | null;
 
+/**
+ * Asynchronously replicates actions performed in the logs.
+ *
+ * @return {Promise<void>} Nothing is returned by this function.
+ */
 const replicateFromLogs = async () => {
 	try {
 		const indexes: number[] = Array(logs.length).fill(0); //Cria um array the indexes
@@ -112,6 +117,15 @@ const replicateFromLogs = async () => {
 		);
 	}
 };
+/**
+ * Executes different actions based on the action string passed as a parameter, 
+ * such as writing, updating, or deleting data in the database.
+ *
+ * @param {string} action - The action to be executed (write, update, or delete).
+ * @param {logStruct} object - An object containing data to be processed by the function.
+ *                             It must contain a FileName and a DataObject.
+ * @return {Promise<void>} A Promise that resolves when the action is completed.
+ */
 const actions = async (action: string, object: logStruct) => {
 	const fileName = object.DataObject.FileName;
 	const data = object.DataObject.Data;
@@ -164,6 +178,13 @@ const actions = async (action: string, object: logStruct) => {
 			break;
 	}
 };
+/**
+ * Calculates the MD5 hash digest of a given file name asynchronously.
+ *
+ * @param {string} fileName - The name of the file to be hashed.
+ * @return {Promise<string>} A Promise that resolves to the hexadecimal string
+ * representation of the MD5 hash digest of the file name.
+ */
 const createDigest = async (fileName: string) => {
 	return crypto.createHash("md5").update(fileName).digest("hex");
 };
