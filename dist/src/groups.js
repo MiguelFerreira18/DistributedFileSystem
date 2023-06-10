@@ -21,4 +21,4 @@ exports.groupMap.set("5a5774c5be0", new Group(["Luís Remuge", "Gabriel Meireles
 exports.groupMap.set("62868e02fbc", new Group(["João Quental", "Rodrigo Magalhães", "Carlos Pereira"], "5"));
 exports.groupMap.set("71b545e329d", new Group(["André Barbosa", "Pedro Soares"], "6"));
 //export groupMap and the class Group
-exports.default = { groupMap: exports.groupMap, Group };
+exports.default = { groupMap: exports.groupMap };

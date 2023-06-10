@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleErrors = void 0;
-const logger_1 = require("../config/logger");
+const logger_1 = require("./logger");
 const handleErrors = async (errorName, err, errorLocation, filePath) => {
     switch (errorName) {
         case "read":

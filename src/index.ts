@@ -4,7 +4,7 @@ import { logger } from "../Modules/logger";
 import fileRoutes from "../routes/fileRoutes";
 import { mySubServers, subServer } from "../src/subGroup";
 import axios from "axios";
-import { toInteger } from "lodash";
+import { has, toInteger } from "lodash";
 import proxyRoutes from "../routes/proxyRoutes";
 import db from "../dbPardal.json";
 import subServerRouter from "../routes/subServerRoutes";
@@ -71,6 +71,7 @@ async function callSubServer(element: subServer) {
 		element.isOn = true;
 	} catch (err) {
 		console.log("Server " + element.serverAdress + " is not reachable");
+		element.isOn = false;
 		//ERROR CALLING SUB SERVERS
 		handleErrors("callSubServer", err, "../src/index.ts : 65");
 	}
@@ -96,6 +97,12 @@ async function electLeader() {
 				server: `http://localhost:${PORT}/`,
 			});
 			console.log("Server " + PORT + " is the leader");
+			const server = mySubServers.find((s) =>
+				s.serverAdress.includes(PORT.toString())
+			);
+			if (server) {
+				server.isLeader = true;
+			}
 		} catch (err) {
 			console.log("Server " + PORT + " is not the leader");
 			//PROBLEM ANNOUNCING THE LEADER
@@ -117,6 +124,7 @@ async function electLeader() {
 							server: `http://localhost:${PORT}`,
 						}
 					);
+					console.log("Done");
 					if (res.status == 204) {
 						console.log(
 							"Server " +
@@ -144,8 +152,9 @@ async function electLeader() {
 								}
 							);
 							console.log("Server " + PORT + " is the leader");
-
-							await sendLeader();
+							console.log(
+								"HE REACHED THIS PLACE!!!!!!!!!!!!!!!!!!!!!!!!!!"
+							);
 						} catch (err) {
 							console.log(
 								"Server " + PORT + " is not the leader"
@@ -156,6 +165,11 @@ async function electLeader() {
 								err,
 								"../src/index.ts : 117"
 							);
+						}
+						try {
+							const c = await sendLeader();
+						} catch (err) {
+							console.log("um deles não está on");
 						}
 					} else if (!res.data.becomeLeader && res.status == 200) {
 						console.log("Server " + PORT + " is not the leader");
@@ -212,20 +226,24 @@ async function retreiveLogs() {
 	console.log("end of method");
 }
 async function sendLeader() {
+	console.log("send 1");
 	const servers = mySubServers.filter(
-		(element) =>
-			element.serverAdress.search(PORT.toString()) < 0 && element.isOn
+		(element) => element.serverAdress.search(PORT.toString()) < 0
 	);
+	console.log("send 2");
+	console.log(servers.length);
 	for (const server of servers) {
 		try {
+			console.log("send 3");
 			const res = await axios.post(
-				`${server.serverAdress}election/receiveLeader`,
+				`${server.serverAdress}election/sendLeader`,
 				{
 					//Send for the server and then update it
 					servers: `http://localhost:${PORT}/`,
 				}
 			);
 			console.log(res.data);
+			console.log("send 4");
 		} catch (error) {
 			console.log(error);
 		}
@@ -234,23 +252,30 @@ async function sendLeader() {
 
 async function pingLeader() {
 	const server = mySubServers.find((element) => element.isLeader);
-	if (server) {
+	if (server && server.serverAdress.search(PORT.toString()) < 0) {
 		try {
-			const serverResponse = await axios.post(`${server?.serverAdress}`, {
-				//Send for the server and then update it
-				servers: `http://localhost:${PORT}/`,
-			});
-			console.log(serverResponse.data);
+			const serverResponse = await axios.get(`${server?.serverAdress}`);
+			console.log("is Leader on: " + serverResponse.data);
 		} catch (error) {
-			console.log(error); //Mudar para ficar melhor
+			console.log("is Leader on: " + false);
+			//Mudar para ficar melhor
 			//RESETA TUDO E FAZ A REILEIÇÃO
 			for (const server of mySubServers) {
 				server.isLeader = false;
 				server.isOn = false;
 				server.response = false;
 			}
+			hasCommunicated = false;
 			db.serverId = toInteger(Math.random() * 10001);
+			console.log(db.serverId);
+			//SLeep the server for 3 seconds
+			await new Promise((resolve) => setTimeout(resolve, 10000 - db.serverId));
+
+			console.log("logger 1");
+			await communicateWithSubServers();
+			console.log("logger 2");
 			await electLeader();
+			console.log("logger 3");
 		}
 	}
 }
@@ -284,8 +309,6 @@ app.listen(PORT, async () => {
 	setInterval(async () => {
 		await pingLeader();
 	}, 2000);
-
-	
 });
 
 export default app;

@@ -93,6 +93,7 @@ const receiveId = async (req: any, res: Response) => {
 					element.isOn = true;
 				} else element.isLeader = true;
 			});
+			await switchLeader();
 
 			// Send that the other server is not the leader by having a smaller id
 			res.status(200).send({
@@ -107,18 +108,26 @@ const receiveId = async (req: any, res: Response) => {
 	}
 };
 
-const receiveLeader = async (req: any, res: any) => {
-	const { leaderServer } = req.body;
-	for (const server of mySubServers) {
-		if (server.serverAdress.search(leaderServer)) {
-			server.isLeader = true;
-		} else {
-			server.isLeader = false;
+const sendLeader = async (req: any, res: any) => {
+	try {
+		console.log(req.body);
+		console.log(req.data);
+		const { servers } = req.body;
+		console.log(servers);
+		console.log("Leader Received");
+		for (const server of mySubServers) {
+			if (server.serverAdress.search(servers) >= 0) {
+				server.isLeader = true;
+				console.log("Leader Updated");
+			} else {
+				server.isLeader = false;
+			}
 		}
+		res.send("ok");
+	} catch (error) {
+		res.send("not ok");
 	}
-	res.send(ok);
 };
-
 
 const CheckLeaderStatus = async (req: any, res: any) => {
 	console.log("reached");
@@ -129,4 +138,33 @@ const CheckLeaderStatus = async (req: any, res: any) => {
 	res.status(200).send(myServer?.isLeader);
 };
 
-export default { receiveId, CheckLeaderStatus, receiveLeader };
+
+async function switchLeader() {
+	console.log("send 1")
+	const servers = mySubServers.filter(
+		(element) =>
+			element.serverAdress.search(db.PORT.toString()) < 0
+	);
+	console.log("send 2")
+	console.log(servers.length)
+	for (const server of servers) {
+		try {
+			console.log("send 3")
+			const res = await axios.post(
+				`${server.serverAdress}election/sendLeader`,
+				{
+					//Send for the server and then update it
+					servers: `http://localhost:${db.PORT}/`,
+				}
+			);
+			console.log(res.data);
+			console.log("send 4")
+		} catch (error) {
+			console.log(error);
+		}
+	}
+}
+
+
+
+export default { receiveId, CheckLeaderStatus, receiveLeader: sendLeader };

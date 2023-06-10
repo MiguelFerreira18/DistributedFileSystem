@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.replicateFromLogs = void 0;
-const module_1 = __importDefault(require("../config/module"));
+const module_1 = __importDefault(require("./module"));
 const logs_1 = __importDefault(require("../src/logs"));
 const handleErrors_1 = require("../Modules/handleErrors");
 const crypto_1 = __importDefault(require("crypto"));

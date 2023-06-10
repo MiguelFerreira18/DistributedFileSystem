@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleSuccess = void 0;
-const logger_1 = require("../config/logger");
+const logger_1 = require("./logger");
 const handleSuccess = async (successName, fileName, data) => {
     const timeStamp = new Date().toISOString();
     const dataObject = data ? { FileName: fileName, Data: data } : undefined;

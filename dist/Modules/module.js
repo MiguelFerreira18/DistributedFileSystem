@@ -29,12 +29,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importStar(require("fs"));
 const path_1 = __importDefault(require("path"));
 const path_2 = require("path");
-const dbPardal_json_1 = __importDefault(require("../config/dbPardal.json"));
+const dbPardal_json_1 = __importDefault(require("../dbPardal.json"));
 const groups_1 = require("../src/groups");
 const express_http_proxy_1 = __importDefault(require("express-http-proxy"));
 const axios_1 = __importDefault(require("axios"));
 const subGroup_1 = require("../src/subGroup");
-const config_1 = __importDefault(require("../models/config"));
 const crypto_1 = __importDefault(require("crypto"));
 let dbKernel;
 let home;
@@ -71,7 +70,7 @@ dbKernel = {
         console.log(body);
         subGroup_1.mySubServers.forEach(async (element) => {
             console.log(element);
-            if (element.serverAdress.search(config_1.default.PORT) < 0) {
+            if (element.serverAdress.search(dbPardal_json_1.default.PORT.toString()) < 0) {
                 const url = `${element.serverAdress}file/receive/${fileName}`;
                 await axios_1.default.post(url, {
                     body,

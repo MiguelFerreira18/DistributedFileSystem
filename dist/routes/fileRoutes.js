@@ -7,7 +7,6 @@ const express_1 = __importDefault(require("express"));
 const fileController_1 = __importDefault(require("../controllers/fileController"));
 const router = express_1.default.Router();
 router.get('/', fileController_1.default.getPage);
-router.post('/init/:groupHash', fileController_1.default.init);
 router.post('/receive/:fileName', fileController_1.default.receive);
 router.get('/status', fileController_1.default.groupServerStatus);
 router.get("/read/:fileName", fileController_1.default.readFile);

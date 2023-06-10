@@ -87,7 +87,7 @@ dbKernel = {
 	create: async function (fileName: any, messageBody: Message) {
 		const filePath = join(folderPath, fileName + ".json");
 	
-		await appendFileSync(filePath, JSON.stringify(messageBody), "utf-8");
+		await writeFileSync(filePath, JSON.stringify(messageBody), "utf-8");
 	},
 	update: async function (fileName: any, messageBody: Message) {
 		const filePath = join(folderPath, fileName + ".json");

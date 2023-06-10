@@ -8,6 +8,7 @@
     "controllersDir":"controllers",
     "controllerIdPort":"localhost",
     "hasComunicated":false,
+    "isOn":true,
     "PORT":3500,
     "isProxy":false,
     "serverId":0,
